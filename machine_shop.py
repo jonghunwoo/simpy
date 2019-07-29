@@ -1,6 +1,6 @@
 """
 Machine shop example
-
+고장에 의한 수리작업자 작업 반영
 Covers:
 
 - Interrupts
