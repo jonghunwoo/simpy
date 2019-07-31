@@ -39,15 +39,18 @@ if __name__ == '__main__':
     ps_snoop2 = PacketSink(env, rec_arrivals=True, absolute_arrivals=True)
 
     # Set up the virtual clock switch port
-    source_rate = 8.0*const_size()/const_arrival()  # the average source rate
+    source_rate = 8.0 * const_size() / const_arrival()  # the average source rate
     phi_base = source_rate
     switch_port = WFQServer(env, source_rate, [0.5*phi_base, 0.5*phi_base])
     switch_port2 = VirtualClockServer(env, source_rate, [2.0/phi_base, 2.0/phi_base])
     demux = FlowDemux()
+
     snoop1 = SnoopSplitter()
     snoop2 = SnoopSplitter()
+
     pg.out = snoop1
     pg2.out = snoop2
+
     snoop1.out2 = ps_snoop1
     snoop2.out2 = ps_snoop2
 
@@ -63,7 +66,9 @@ if __name__ == '__main__':
     # type = "VC"
 
     demux.outs = [ps, ps2]
-    env.run(until=10000)
+    env.run(until=100000)
+
+    print("ps.arrivals")
     print(ps.arrivals)
 
     fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
