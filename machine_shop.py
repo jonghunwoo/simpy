@@ -1,7 +1,7 @@
 """
 Machine shop example
 고장에 의한 수리작업자 작업 반영
-수리작업자의 우선순위 반영
+수리작업자의 우선순위 반영: simpy의 PreemptiveResource 함수 사용
 Covers:
 
 - Interrupts
@@ -122,7 +122,9 @@ random.seed(RANDOM_SEED)  # This helps reproducing the results
 
 # Create an environment and start the setup process
 env = simpy.Environment()
+
 repairman = simpy.PreemptiveResource(env, capacity=1)
+
 machines = [Machine(env, 'Machine %d' % i, repairman) for i in range(NUM_MACHINES)]
 env.process(other_jobs(env, repairman))
 
