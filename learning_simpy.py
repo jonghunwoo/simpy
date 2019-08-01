@@ -90,3 +90,80 @@ env.process(bp1)
 
 env.run(until=200)
 """
+
+#basic case - resource
+"""
+def Student(env, num, library, arrive_time):
+    ## student마다 도착하는 시간이 다르게 표현
+    yield env.timeout(arrive_time)
+    ## 아래와 같은 형태로 쓰면 자동으로 get, release가 된다.
+    ## 단, 다른 형태로 쓸 경우에는 req = library.request(), library.release(req) 로 해주어야 함
+
+    ## with library.request() as req:
+    ##   yield req
+
+    ## 여기서 해당 resource에 대한 사용권을 얻고
+    ## req = library.request()
+    ## 사용이 종료되면, 다음을 통해 resource의 사용권을 풀어줌
+    ## library.release(req)
+
+    ## with 내의 구문이 종료되면 자동으로 resource release
+    with library.request() as req:
+        ## resource를 사용할 수 있을때까지 기다림, 즉시 사용가능하다면 이 부분은 거의 바로 넘어감
+        yield req
+        ## 일정 시간 만큼 공부함
+        study_time = np.random.triangular(left=5, right=10, mode=8)
+        yield env.timeout(study_time)
+        ## with as 구문으로 resource를 사용할 경우에는, 끝에 굳이 release를 추가하지 않아도 자동으로 release해줌
+
+
+env = simpy.Environment()
+## capacity가 2인 리소스를 선언
+library = simpy.Resource(env, capacity=2)
+
+for i in range(0, 5):
+    arrive_time = np.random.triangular(left=1, right=8, mode=3)
+    stu = Student(env, i, library, arrive_time)
+    env.process(stu)
+
+## 50초까지 표현했지만, 남아있는 process가 없을 경우에는 그냥 종료됨.
+env.run(until=50)
+"""
+
+#basic case - resource, the better code
+#"""
+
+def Student(env, num, library, arrive_time):
+    ## 학생은 랜덤 시간 이후 도착
+    yield env.timeout(arrive_time)
+    print("student {} arrived library at {:6.2f}".format(num, env.now))
+    waiting_time = env.now
+
+    ## 아래와 같은 형태로 쓰면 자동으로 get, release가 된다.
+    ## 단, 다른 형태로 쓸 경우에는 req = library.request(), library.release(req) 로 해주어야 함.
+    with library.request() as req:
+        yield req  ## resource를 사용이 가능하면 이 부분이 수행됨
+        waiting_time = env.now - waiting_time
+        ## waiting_time이 0이 아닌 경우는 기다린 경우
+        if waiting_time != 0:
+            print("student {} is waiting  during {:6.2f}".format(num, waiting_time))
+        ## 얼마나 공부할지를 계산
+        study_time = np.random.triangular(left=5, right=10, mode=8)
+        print("student {} start to  study at {:6.2f}".format(num, env.now))
+        ## 학생이 공부를 시작했고 => 현재 도서관이 꽉 차 있을 경우 꽉 차있다는 것을 표현
+        if library.capacity == library.count:
+            print("#### library full at  {:6.2f} ####".format(env.now))
+        yield env.timeout(study_time)
+        print("student {} end   to  study at {:6.2f}".format(num, env.now))
+        print("#### library seat available at {:6.2f} ####".format(env.now))
+
+
+env = simpy.Environment()
+library = simpy.Resource(env, capacity=2)
+
+for i in range(0, 5):
+    arrive_time = np.random.triangular(left=1, right=8, mode=3)
+    stu = Student(env, i, library, arrive_time)
+    env.process(stu)
+
+env.run(until=50)
