@@ -20,8 +20,7 @@ import random
 
 import simpy
 
-
-RANDOM_SEED = 42
+RANDOM_SEED: int = 42
 PT_MEAN = 10.0         # Avg. processing time in minutes
 PT_SIGMA = 2.0         # Sigma of processing time
 MTTF = 300.0           # Mean time to failure in minutes
@@ -29,29 +28,25 @@ BREAK_MEAN = 1 / MTTF  # Param. for expovariate distribution
 REPAIR_TIME = 30.0     # Time it takes to repair a machine in minutes
 JOB_DURATION = 30.0    # Duration of other jobs in minutes
 NUM_MACHINES = 10      # Number of machines in the machine shop
-WEEKS = 4              # Simulation time in weeks
+WEEKS = 5              # Simulation time in weeks
 SIM_TIME = WEEKS * 7 * 24 * 60  # Simulation time in minutes
-
 
 def time_per_part():
     """Return actual processing time for a concrete part."""
     return random.normalvariate(PT_MEAN, PT_SIGMA)
 
-
 def time_to_failure():
     """Return time until next failure for a machine."""
     return random.expovariate(BREAK_MEAN)
 
-
 class Machine(object):
-    """A machine produces parts and my get broken every now and then.
+    #A machine produces parts and my get broken every now and then.
 
-    If it breaks, it requests a *repairman* and continues the production
-    after the it is repaired.
+    #If it breaks, it requests a *repairman* and continues the production
+    #after the it is repaired.
 
-    A machine has a *name* and a numberof *parts_made* thus far.
+    #A machine has a *name* and a number of *parts_made* thus far.
 
-    """
     def __init__(self, env, name, repairman):
         self.env = env
         self.name = name
@@ -60,6 +55,7 @@ class Machine(object):
 
         # Start "working" and "break_machine" processes for this machine.
         self.process = env.process(self.working(repairman))
+        #env.process(self.working(repairman)) #Why not working?
         env.process(self.break_machine())
 
     def working(self, repairman):
@@ -127,14 +123,13 @@ random.seed(RANDOM_SEED)  # This helps reproducing the results
 # Create an environment and start the setup process
 env = simpy.Environment()
 repairman = simpy.PreemptiveResource(env, capacity=1)
-machines = [Machine(env, 'Machine %d' % i, repairman)
-            for i in range(NUM_MACHINES)]
+machines = [Machine(env, 'Machine %d' % i, repairman) for i in range(NUM_MACHINES)]
 env.process(other_jobs(env, repairman))
 
 # Execute!
 env.run(until=SIM_TIME)
 
-# Analyis/results
+# Results
 print('Machine shop results after %s weeks' % WEEKS)
 for machine in machines:
     print('%s made %d parts.' % (machine.name, machine.parts_made))
