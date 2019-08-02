@@ -218,16 +218,17 @@ env.run(50)
 
 #Interrupting another process
 
-#"""
-## 현재 env에 있는 모든 process를 쭉 접근할 수 있는 방법이 없음.
-## 따라서, 매번 프로세스를 따로 리스트의 형태로 저장해주는 것이 필요함.
-current_ps = []
+"""
+## 현재 env에 있는 모든 process를 쭉 접근할 수 있는 방법이 없음
+## 따라서, 매번 프로세스를 따로 리스트의 형태로 저장해주는 것이 필요
 
+current_ps = []
 
 def clock(env, i, tick):
     ## generator에 interrupt 가 발생했을 때 종료하는 조건을 넣어주어야 함
     while True:
         try:
+            print('clock {} started at {}'.format(i, env.now))
             yield env.timeout(tick)
             print('clock {} ticks at {}'.format(i, env.now))
         except simpy.Interrupt:
@@ -240,7 +241,7 @@ def stop_any_process(env):
     ## 남아있는 clock이 없을때의 조건도 만들어줌.
     while True:
         try:
-            yield env.timeout(2)
+            yield env.timeout(1)
             r = np.random.randint(0, len(current_ps))
             current_ps[r].interrupt()
             current_ps.remove(current_ps[r])
@@ -264,4 +265,54 @@ env.process(stop_any_process(env))
 
 env.run(until=20)
 
+"""
+
+#bank example
+
 #"""
+
+def customer(env, name, counter, mean_service_time):
+    ## counter: 사용하는 리소스
+    ## mean_service_time: 서비스 시간 평균
+    arrive_time = env.now
+    patience_time = np.random.uniform(2, 5)
+    print('%7.4f %s: Here I am' % (arrive_time, name))
+
+    with counter.request() as req:
+        ## | 로 묶어주면 or  종료조건
+        ## & 로 묶어주면 and 종료조건으로 인식함
+        patience_over = env.timeout(patience_time)
+        print('patience over ', patience_over)
+        print('req ', req)
+        result = yield req | patience_over
+        print('result ', result)
+        ## wait time 게산
+        wait_time = env.now - arrive_time
+        ## is 가 아니라 in인 것에 유의
+        if patience_over in result:
+            print('%7.4f %s: RENEGED after %6.3f' % (env.now, name, wait_time))
+        elif req in result:
+            print('%7.4f %s: Waited %6.3f' % (env.now, name, wait_time))
+            service_time = np.random.exponential(mean_service_time)
+            yield env.timeout(service_time)
+            print('%7.4f %s: Finished' % (env.now, name))
+
+
+def source(env, customer_n, interval, counter):
+    ## exponential time 마다 customer를 추가해줍니다
+    for i in range(customer_n):
+        c = customer(env, 'Customer%02d' % i, counter, mean_service_time=8.0)
+        env.process(c)
+        t = np.random.exponential(interval)
+        yield env.timeout(t)
+
+
+np.random.seed(42)
+env = simpy.Environment()
+
+## 우선 counter generator를 만들어주고
+counter = simpy.Resource(env, capacity=1)
+bank = source(env, 5, 3.0, counter)
+
+env.process(bank)
+env.run(until=90)
