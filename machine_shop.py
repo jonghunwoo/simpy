@@ -32,7 +32,7 @@ WEEKS = 5              # Simulation time in weeks
 SIM_TIME = WEEKS * 7 * 24 * 60  # Simulation time in minutes
 
 def time_per_part():
-    """Return actual processing time for a concrete part."""
+    """Return actual processing time for a cooncrete part."""
     return random.normalvariate(PT_MEAN, PT_SIGMA)
 
 def time_to_failure():

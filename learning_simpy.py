@@ -131,7 +131,7 @@ env.run(until=50)
 """
 
 #basic case - resource, the better code
-#"""
+"""
 
 def Student(env, num, library, arrive_time):
     ## 학생은 랜덤 시간 이후 도착
@@ -159,7 +159,7 @@ def Student(env, num, library, arrive_time):
 
 
 env = simpy.Environment()
-library = simpy.Resource(env, capacity=2)
+library = simpy.Resource(env, capacity=4)
 
 for i in range(0, 5):
     arrive_time = np.random.triangular(left=1, right=8, mode=3)
@@ -167,3 +167,101 @@ for i in range(0, 5):
     env.process(stu)
 
 env.run(until=50)
+
+"""
+
+#waiting for process
+"""
+
+## 물론 이 아래 부분을 클래스로 구현을 해도 좋지만 일단은 이해를 위해서 다 함수로 표현함
+def subsubprocess(env):
+    ## process의 개별 activity는 subprocess로 구성되어 있습니다.
+    print('        subsubprocess start at {:6.2f}'.format(env.now))
+    for i in range(0, 2):
+        execution_time = np.random.triangular(left=1, right=2, mode=1)
+        yield env.timeout(execution_time)
+    print('        subsubprocess over  at {:6.2f}'.format(env.now))
+
+
+def subprocess(env):
+    ## process의 개별 activity는 subprocess로 구성되어 있습니다.
+    print('    subprocess start at {:6.2f}'.format(env.now))
+    for i in range(0, 2):
+        yield env.process(subsubprocess(env))
+    print('    subprocess over  at {:6.2f}'.format(env.now))
+
+
+def process(env, activity_lst):
+    while True:
+        for act in activity_lst:
+            print("start {} at {:6.2f}".format(act, env.now))
+            #execution_time = np.random.triangular(left=3, right=10, mode=6)
+            ## 모든 activity는 subprocess라고 생각한다.
+            ## subprocess(env)가 종료되어야 다음 스텝으로 넘어감
+            ## 즉 일종의 waiting for other process를 구현했다고 보면 됨
+            yield env.process(subprocess(env))
+            ##############
+            print("end   {} at {:6.2f}".format(act, env.now))
+            transfer_time = np.random.triangular(left=1, right=3, mode=2)
+            yield env.timeout(transfer_time)
+        print('process instance ends')
+        print('#' * 30)
+        return None
+
+
+env = simpy.Environment()
+process1 = process(env, ["act_{}".format(i) for i in range(0, 3)])
+env.process(process1)
+env.run(50)
+
+"""
+
+#Interrupting another process
+
+#"""
+## 현재 env에 있는 모든 process를 쭉 접근할 수 있는 방법이 없음.
+## 따라서, 매번 프로세스를 따로 리스트의 형태로 저장해주는 것이 필요함.
+current_ps = []
+
+
+def clock(env, i, tick):
+    ## generator에 interrupt 가 발생했을 때 종료하는 조건을 넣어주어야 함
+    while True:
+        try:
+            yield env.timeout(tick)
+            print('clock {} ticks at {}'.format(i, env.now))
+        except simpy.Interrupt:
+            print("## the clock {} was interrupted".format(i))
+            return None
+
+
+def stop_any_process(env):
+    ## 2초마다 한번씩 현재 process 중 아무거나 종료시키는 generator
+    ## 남아있는 clock이 없을때의 조건도 만들어줌.
+    while True:
+        try:
+            yield env.timeout(2)
+            r = np.random.randint(0, len(current_ps))
+            current_ps[r].interrupt()
+            current_ps.remove(current_ps[r])
+        except:
+            print("#" * 20)
+            print("all process was interrupted at {}".format(env.now))
+            return None
+
+
+## environment setting
+env = simpy.Environment()
+
+## 6 개의 중간에 멈출 수 있는 clock을 만들어서 집어넣음
+for i in range(0, 5):
+    p = env.process(clock(env, i, 2))
+    ## 새롭게 만들어진 프로세스에 대해서 외부에서 접근 방법이 없으므로, 따로 저장해두어야 함
+    current_ps.append(p)
+
+## 2초마다 process를 멈추는 generator도 넘겨줌
+env.process(stop_any_process(env))
+
+env.run(until=20)
+
+#"""
