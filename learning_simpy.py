@@ -142,7 +142,7 @@ def Student(env, num, library, arrive_time):
     ## 아래와 같은 형태로 쓰면 자동으로 get, release가 된다.
     ## 단, 다른 형태로 쓸 경우에는 req = library.request(), library.release(req) 로 해주어야 함.
     with library.request() as req:
-        yield req  ## resource를 사용이 가능하면 이 부분이 수행됨
+        yield req  ## resource 사용이 가능하면 이 부분이 수행됨
         waiting_time = env.now - waiting_time
         ## waiting_time이 0이 아닌 경우는 기다린 경우
         if waiting_time != 0:
@@ -266,8 +266,9 @@ env.process(stop_any_process(env))
 env.run(until=20)
 
 """
-
-#bank example
+########################
+####  bank example  ####
+########################
 
 #"""
 
@@ -282,12 +283,11 @@ def customer(env, name, counter, mean_service_time):
         ## | 로 묶어주면 or  종료조건
         ## & 로 묶어주면 and 종료조건으로 인식함
         patience_over = env.timeout(patience_time)
-        print('patience over ', patience_over)
-        print('req ', req)
         result = yield req | patience_over
-        print('result ', result)
+
         ## wait time 게산
         wait_time = env.now - arrive_time
+
         ## is 가 아니라 in인 것에 유의
         if patience_over in result:
             print('%7.4f %s: RENEGED after %6.3f' % (env.now, name, wait_time))
@@ -311,8 +311,9 @@ np.random.seed(42)
 env = simpy.Environment()
 
 ## 우선 counter generator를 만들어주고
-counter = simpy.Resource(env, capacity=1)
-bank = source(env, 5, 3.0, counter)
+counter = simpy.Resource(env, capacity=3)
+bank = source(env, 7, 2.0, counter)
 
 env.process(bank)
 env.run(until=90)
+
