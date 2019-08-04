@@ -81,6 +81,7 @@ random.seed(RANDOM_SEED)  # This helps reproducing the results
 
 # Create an environment and start the setup process
 env = simpy.Environment()
+
 env.process(setup(env, NUM_MACHINES, WASHTIME, T_INTER))
 
 # Execute
