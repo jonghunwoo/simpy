@@ -75,20 +75,19 @@ def customer_arrivals(env, theater):
 #Theater = collections.namedtuple('Theater', 'counter, movies, available, ' 'sold_out, when_sold_out, ' 'num_renegers')
 Theater = collections.namedtuple('Theater', 'counter, movies, available, sold_out, when_sold_out, num_renegers')
 
-
-
 # Setup and start the simulation
 print('Movie renege')
 random.seed(RANDOM_SEED)
 env = simpy.Environment()
 
 # Create movie theater
-counter = simpy.Resource(env, capacity=1)
-movies = ['Python Unchained', 'Kill Process', 'Pulp Implementation']
+counter = simpy.Resource(env, capacity=1) # counter 리소스 생성
+movies = ['Python Unchained', 'Kill Process', 'Pulp Implementation'] # 영화 종류
 available = {movie: TICKETS for movie in movies}
 sold_out = {movie: env.event() for movie in movies}
 when_sold_out = {movie: None for movie in movies}
 num_renegers = {movie: 0 for movie in movies}
+
 theater = Theater(counter, movies, available, sold_out, when_sold_out, num_renegers)
 
 # Start process and run
