@@ -41,8 +41,7 @@ class Packet(object):
         self.flow_id = flow_id
 
     def __repr__(self):
-        return "id: {}, src: {}, time: {}, size: {}".\
-            format(self.id, self.src, self.time, self.size)
+        return "id: {}, src: {}, time: {}, size: {}".format(self.id, self.src, self.time, self.size)
 
 
 class PacketGenerator(object):
@@ -83,7 +82,6 @@ class PacketGenerator(object):
         while self.env.now < self.finish:
             # wait for next transmission
             adist = self.adist()
-            print('Inter-arrival time is ', adist)
             yield self.env.timeout(adist)
 
             # define number of packets
@@ -136,8 +134,6 @@ class PacketSink(object):
         if not self.selector or self.selector(pkt):
             now = self.env.now
             if self.rec_waits:
-                print('Current time is ', self.env.now)
-                print('pkt.time is ', pkt.time)
                 self.waits.append(self.env.now - pkt.time)
             if self.rec_arrivals:
                 if self.absolute_arrivals:
@@ -146,7 +142,6 @@ class PacketSink(object):
                     self.arrivals.append(now - self.last_arrival)
                 self.last_arrival = now
             self.packets_rec += 1 # Sink에 도착한 packet 수 저장
-            print('packets_recorded is ', self.packets_rec)
             self.bytes_rec += pkt.size
             if self.debug:
                 print(pkt)
@@ -185,38 +180,29 @@ class SwitchPort(object):
 
     def run(self):
         while True:
-            print('C trigered by ', self.__repr__(), ' at ', self.env.now)
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
             self.busy = 1 # 구동 상태로 속성 전환
             self.byte_size -= msg.size
             #yield self.env.timeout(msg.size*8.0/self.rate)
-            print('D')
             yield self.env.timeout(random.randint(self.rate-1, self.rate+1)) # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
-            print(msg)
             self.out.put(msg)
             self.busy = 0
-            print('E')
             if self.debug:
                 print(msg)
 
     def put(self, pkt):
         self.packets_rec += 1
         tmp_byte_count = self.byte_size + pkt.size
-        print('A')
         if self.qlimit is None: # 대기행렬 한계가 없으면 byte_size 업데이트 한 후 store.put
             self.byte_size = tmp_byte_count
-            print('B with unlimited queue')
             return self.store.put(pkt)
         if self.limit_bytes and tmp_byte_count >= self.qlimit: #
             self.packets_drop += 1
-            print('B with packet drop1')
             return # packet 손실 (제품의 경우 소멸)
         elif not self.limit_bytes and len(self.store.items) >= self.qlimit-1:
             self.packets_drop += 1
-            print('B with packet drop2')
         else:
             self.byte_size = tmp_byte_count
-            print('B with limited queue')
             return self.store.put(pkt)
 
 
