@@ -185,13 +185,14 @@ class SwitchPort(object):
 
     def run(self):
         while True:
-            print('C')
+            print('C trigered by ', self.__repr__(), ' at ', self.env.now)
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
             self.busy = 1 # 구동 상태로 속성 전환
             self.byte_size -= msg.size
             #yield self.env.timeout(msg.size*8.0/self.rate)
             print('D')
             yield self.env.timeout(random.randint(self.rate-1, self.rate+1)) # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
+            print(msg)
             self.out.put(msg)
             self.busy = 0
             print('E')
@@ -204,16 +205,20 @@ class SwitchPort(object):
         print('A')
         if self.qlimit is None: # 대기행렬 한계가 없으면 byte_size 업데이트 한 후 store.put
             self.byte_size = tmp_byte_count
+            print('B with unlimited queue')
             return self.store.put(pkt)
         if self.limit_bytes and tmp_byte_count >= self.qlimit: #
             self.packets_drop += 1
+            print('B with packet drop1')
             return # packet 손실 (제품의 경우 소멸)
         elif not self.limit_bytes and len(self.store.items) >= self.qlimit-1:
             self.packets_drop += 1
+            print('B with packet drop2')
         else:
             self.byte_size = tmp_byte_count
+            print('B with limited queue')
             return self.store.put(pkt)
-        print('B')
+
 
 class PortMonitor(object):
     """ A monitor for an SwitchPort. Looks at the number of items in the SwitchPort
