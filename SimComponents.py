@@ -10,6 +10,7 @@ import copy
 from simpy.core import BoundClass
 from simpy.resources import base
 from heapq import heappush, heappop
+import math
 
 
 class Packet(object):
@@ -32,7 +33,7 @@ class Packet(object):
             small integer that can be used to identify a flow
     """
     def __init__(self, time, size, id, src="a", dst="z", flow_id=0):
-        self.time = time
+        self.time = time # packet 생성 시간 저장 (각 공정 또는 종료점에서 각 packet의 시스템 리드타임을 측정할 수 있음 - pkt.time)
         self.size = size
         self.id = id
         self.src = src
@@ -81,9 +82,18 @@ class PacketGenerator(object):
         yield self.env.timeout(self.initial_delay)
         while self.env.now < self.finish:
             # wait for next transmission
-            yield self.env.timeout(self.adist())
+            adist = self.adist()
+            print('Inter-arrival time is ', adist)
+            yield self.env.timeout(adist)
+
+            # define number of packets
             self.packets_sent += 1
-            p = Packet(self.env.now, self.sdist(), self.packets_sent, src=self.id, flow_id=self.flow_id)
+            sdist = self.sdist()
+            #print('Packet size is ', math.ceil(sdist))
+
+            # create packet with assigned attributes
+            p = Packet(self.env.now, math.ceil(sdist), self.packets_sent, src=self.id, flow_id=self.flow_id)
+            #print(p.__repr__())
             self.out.put(p)
 
 
@@ -108,7 +118,7 @@ class PacketSink(object):
             used for selective statistics. Default none.
 
     """
-    def __init__(self, env, rec_arrivals=False, absolute_arrivals=False, rec_waits=True, debug=False, selector=None):
+    def __init__(self, env, rec_arrivals=True, absolute_arrivals=False, rec_waits=True, debug=True, selector=None):
         self.store = simpy.Store(env)
         self.env = env
         self.rec_waits = rec_waits
@@ -126,6 +136,8 @@ class PacketSink(object):
         if not self.selector or self.selector(pkt):
             now = self.env.now
             if self.rec_waits:
+                print('Current time is ', self.env.now)
+                print('pkt.time is ', pkt.time)
                 self.waits.append(self.env.now - pkt.time)
             if self.rec_arrivals:
                 if self.absolute_arrivals:
@@ -133,7 +145,8 @@ class PacketSink(object):
                 else:
                     self.arrivals.append(now - self.last_arrival)
                 self.last_arrival = now
-            self.packets_rec += 1
+            self.packets_rec += 1 # Sink에 도착한 packet 수 저장
+            print('packets_recorded is ', self.packets_rec)
             self.bytes_rec += pkt.size
             if self.debug:
                 print(pkt)
@@ -172,31 +185,35 @@ class SwitchPort(object):
 
     def run(self):
         while True:
-            msg = (yield self.store.get())
-            self.busy = 1
+            print('C')
+            msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
+            self.busy = 1 # 구동 상태로 속성 전환
             self.byte_size -= msg.size
-            yield self.env.timeout(msg.size*8.0/self.rate)
+            #yield self.env.timeout(msg.size*8.0/self.rate)
+            print('D')
+            yield self.env.timeout(random.randint(self.rate-1, self.rate+1)) # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
             self.out.put(msg)
             self.busy = 0
+            print('E')
             if self.debug:
                 print(msg)
 
     def put(self, pkt):
         self.packets_rec += 1
         tmp_byte_count = self.byte_size + pkt.size
-
-        if self.qlimit is None:
+        print('A')
+        if self.qlimit is None: # 대기행렬 한계가 없으면 byte_size 업데이트 한 후 store.put
             self.byte_size = tmp_byte_count
             return self.store.put(pkt)
-        if self.limit_bytes and tmp_byte_count >= self.qlimit:
+        if self.limit_bytes and tmp_byte_count >= self.qlimit: #
             self.packets_drop += 1
-            return
+            return # packet 손실 (제품의 경우 소멸)
         elif not self.limit_bytes and len(self.store.items) >= self.qlimit-1:
             self.packets_drop += 1
         else:
             self.byte_size = tmp_byte_count
             return self.store.put(pkt)
-
+        print('B')
 
 class PortMonitor(object):
     """ A monitor for an SwitchPort. Looks at the number of items in the SwitchPort
