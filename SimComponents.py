@@ -12,7 +12,6 @@ from simpy.resources import base
 from heapq import heappush, heappop
 import math
 
-
 class Packet(object):
     """ A very simple class that represents a packet.
         This packet will run through a queue at a switch output port.
@@ -116,7 +115,8 @@ class PacketSink(object):
             used for selective statistics. Default none.
 
     """
-    def __init__(self, env, rec_arrivals=True, absolute_arrivals=False, rec_waits=True, debug=True, selector=None):
+    def __init__(self, env, name, rec_arrivals=True, absolute_arrivals=False, rec_waits=True, debug=True, selector=None):
+        self.name = name
         self.store = simpy.Store(env)
         self.env = env
         self.rec_waits = rec_waits
@@ -164,7 +164,8 @@ class SwitchPort(object):
             queue limit will be based on packets.
 
     """
-    def __init__(self, env, rate, qlimit=None, limit_bytes=True, debug=False):
+    def __init__(self, env, name, rate, qlimit=None, limit_bytes=True, debug=False):
+        self.name = name
         self.store = simpy.Store(env)
         self.rate = rate
         self.env = env
@@ -185,6 +186,15 @@ class SwitchPort(object):
             self.byte_size -= msg.size
             #yield self.env.timeout(msg.size*8.0/self.rate)
             yield self.env.timeout(random.randint(self.rate-1, self.rate+1)) # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
+
+            # 이 부분에 다음 연결된 요소의 queue length를 확인하여 qlimit보다 작을때까지 대기하도록 하는 코드 필요
+            # self.out.qlimit : 다음 연결된 요소의 qlimit
+            # len(self.out.store.items) : 다음 연결된 요소의 pkt 갯수
+            print(self.out.name)
+            print(self.out)
+            if self.out.name != 'Sink':
+                #print(self.name, self.out.qlimit, len(self.out.store.itmes), ' at ', self.env.now)
+                print(self.name, self.out.qlimit, ' at ', self.env.now)
             self.out.put(msg)
             self.busy = 0
             if self.debug:

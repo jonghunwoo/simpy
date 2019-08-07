@@ -26,10 +26,10 @@ if __name__ == '__main__':
     env = simpy.Environment()
 
     # Create the packet generators and sink
-    ps = PacketSink(env, debug=False, rec_arrivals=True)
+    ps = PacketSink(env, 'Sink', debug=False, rec_arrivals=True)
     pg = PacketGenerator(env, "Source", adist, sdist)
-    switch_port1 = SwitchPort(env, port_rate1, qlimit=5, limit_bytes = False)
-    switch_port2 = SwitchPort(env, port_rate2, qlimit=5, limit_bytes = False)
+    switch_port1 = SwitchPort(env, 'Port1', port_rate1, qlimit=7, limit_bytes = False)
+    switch_port2 = SwitchPort(env, 'Port2', port_rate2, qlimit=5, limit_bytes = False)
 
     # Using a PortMonitor to track queue sizes over time
     pm1 = PortMonitor(env, switch_port1, samp_dist)
