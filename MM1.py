@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # Using Python functools to create callable functions for random variates with fixed parameters
     # each call to these will produce a new random value
 
-    adist = functools.partial(random.randrange, 1,5) # arrival distribution
+    adist = functools.partial(random.randrange, 1,3) # arrival distribution
     #sdist = functools.partial(random.expovariate, 0.1)  # successive sizes of packets
     sdist = functools.partial(random.randint, 1,1)
     samp_dist = functools.partial(random.expovariate, 1)

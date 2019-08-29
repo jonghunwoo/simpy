@@ -90,7 +90,6 @@ class PacketGenerator(object):
 
             # create packet with assigned attributes
             p = Packet(self.env.now, math.ceil(sdist), self.packets_sent, src=self.id, flow_id=self.flow_id)
-            #print(p.__repr__())
             self.out.put(p)
 
 
@@ -193,8 +192,8 @@ class SwitchPort(object):
             print(self.out.name)
             print(self.out)
             if self.out.name != 'Sink':
-                #print(self.name, self.out.qlimit, len(self.out.store.itmes), ' at ', self.env.now)
-                print(self.name, self.out.qlimit, ' at ', self.env.now)
+                print(self.name, self.out.qlimit, len(self.out.store.GetQueue()), ' at ', self.env.now)
+                #print(self.name, self.out.qlimit, ' at ', self.env.now)
             self.out.put(msg)
             self.busy = 0
             if self.debug:
