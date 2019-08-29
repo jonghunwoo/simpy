@@ -195,6 +195,7 @@ class SwitchPort(object):
             if self.out.name != 'Sink':
                 #print(self.name, self.out.qlimit, len(self.out.store.itmes), ' at ', self.env.now)
                 print(self.name, self.out.qlimit, ' at ', self.env.now)
+            #wait until something changed...
             self.out.put(msg)
             self.busy = 0
             if self.debug:
