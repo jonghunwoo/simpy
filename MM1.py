@@ -8,6 +8,7 @@ import functools
 import simpy
 import matplotlib.pyplot as plt
 from SimComponents import PacketGenerator, PacketSink, SwitchPort, PortMonitor
+from keras.models import load_model
 
 if __name__ == '__main__':
 
@@ -24,6 +25,10 @@ if __name__ == '__main__':
 
     # Create the SimPy environment
     env = simpy.Environment()
+
+    # load learning model
+    #model = load_model('making_DL_model.h5')
+    #predicted = model.predict(X2_test)
 
     # Create the packet generators and sink
     ps = PacketSink(env, 'Sink', debug=False, rec_arrivals=True)
