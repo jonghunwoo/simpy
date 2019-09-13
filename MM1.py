@@ -8,6 +8,7 @@ import functools
 import simpy
 import matplotlib.pyplot as plt
 from SimComponents import PacketGenerator, PacketSink, SwitchPort, PortMonitor
+from keras.models import load_model
 
 if __name__ == '__main__':
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
     # Using Python functools to create callable functions for random variates with fixed parameters
     # each call to these will produce a new random value
 
-    adist = functools.partial(random.randrange, 1,5) # arrival distribution
+    adist = functools.partial(random.randrange, 1,10) # arrival distribution
     #sdist = functools.partial(random.expovariate, 0.1)  # successive sizes of packets
     sdist = functools.partial(random.randint, 1,1)
     samp_dist = functools.partial(random.expovariate, 1)
@@ -25,11 +26,15 @@ if __name__ == '__main__':
     # Create the SimPy environment
     env = simpy.Environment()
 
+    # load learning model
+    #model = load_model('making_DL_model.h5')
+    #predicted = model.predict(X2_test)
+
     # Create the packet generators and sink
-    ps = PacketSink(env, debug=False, rec_arrivals=True)
+    ps = PacketSink(env, 'Sink', debug=False, rec_arrivals=True)
     pg = PacketGenerator(env, "Source", adist, sdist)
-    switch_port1 = SwitchPort(env, port_rate1, qlimit=5, limit_bytes = False)
-    switch_port2 = SwitchPort(env, port_rate2, qlimit=5, limit_bytes = False)
+    switch_port1 = SwitchPort(env, 'Port1', port_rate1, qlimit=7, limit_bytes = False)
+    switch_port2 = SwitchPort(env, 'Port2', port_rate2, qlimit=5, limit_bytes = False)
 
     # Using a PortMonitor to track queue sizes over time
     pm1 = PortMonitor(env, switch_port1, samp_dist)
@@ -43,9 +48,9 @@ if __name__ == '__main__':
     # Run it
     env.run(until=100)
 
-    print('#'*100)
+    print('#'*80)
     print("Results of simulation")
-    print('#'*100)
+    print('#'*80)
     print("Lead time of Last 10 packets: "  + ", ".join(["{:.3f}".format(x) for x in ps.waits[-10:]]))
     print("Switch_port1: Last 10 queue sizes: {}".format(pm1.sizes[-10:]))
     print("Switch_port2: Last 10 queue sizes: {}".format(pm2.sizes[-10:]))
