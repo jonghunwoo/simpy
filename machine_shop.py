@@ -17,7 +17,6 @@ Scenario:
 
 """
 import random
-
 import simpy
 
 RANDOM_SEED = 42
@@ -55,12 +54,11 @@ class Machine(object):
 
         # Start "working" and "break_machine" processes for this machine.
         self.process = env.process(self.working(repairman))
-        #env.process(self.working(repairman)) #Why not working?
+        env.process(self.working(repairman))
         env.process(self.break_machine())
 
     def working(self, repairman):
         """Produce parts as long as the simulation runs.
-
         While making a part, the machine may break multiple times.
         Request a repairman when this happens.
 
@@ -73,13 +71,15 @@ class Machine(object):
                     # Working on the part
                     start = self.env.now
                     yield self.env.timeout(done_in)
-                    done_in = 0  # Set to 0 to exit while loop.
+                    done_in = 0  # Set to 0 to exit while loop
 
                 except simpy.Interrupt:
+                    if self.name == 'Machine 6':
+                        print("interrupted at ", self.env.now, " on ", self.name)
                     self.broken = True
-                    done_in -= self.env.now - start  # How much time left?
+                    done_in -= self.env.now - start  # Recording the processing time left?
 
-                    # Request a repairman. This will preempt its "other_job".
+                    # Request a repairman. This will preempt its "other_job"
                     with repairman.request(priority=1) as req:
                         yield req
                         yield self.env.timeout(REPAIR_TIME)
@@ -90,16 +90,16 @@ class Machine(object):
             self.parts_made += 1
 
     def break_machine(self):
-        """Break the machine every now and then."""
+        # Break the machine every now and then
         while True:
             yield self.env.timeout(time_to_failure())
             if not self.broken:
-                # Only break the machine if it is currently working.
+                # Only break the machine if it is currently working
                 self.process.interrupt()
 
 
 def other_jobs(env, repairman):
-    """The repairman's other (unimportant) job."""
+    # The repairman's other (unimportant) job
     while True:
         # Start a new job
         done_in = JOB_DURATION
@@ -124,7 +124,6 @@ random.seed(RANDOM_SEED)  # This helps reproducing the results
 env = simpy.Environment()
 
 repairman = simpy.PreemptiveResource(env, capacity=1)
-
 machines = [Machine(env, 'Machine %d' % i, repairman) for i in range(NUM_MACHINES)]
 env.process(other_jobs(env, repairman))
 
