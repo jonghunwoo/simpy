@@ -182,10 +182,13 @@ class SwitchPort(object):
     def run(self):
         while True:
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
-            self.busy = 1 # 구동 상태로 속성 전환
+            # 구동 상태로 속성 전환
+            self.busy = 1
             self.byte_size -= msg.size
+
+            # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
             #yield self.env.timeout(msg.size*8.0/self.rate)
-            yield self.env.timeout(random.randint(self.rate-1, self.rate+1)) # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
+            yield self.env.timeout(random.randint(self.rate-1, self.rate+1))
 
             # 이 부분에 다음 연결된 요소의 queue length를 확인하여 qlimit보다 작을때까지 대기하도록 하는 코드 필요
             # self.out.qlimit : 다음 연결된 요소의 qlimit
@@ -207,7 +210,7 @@ class SwitchPort(object):
         if self.qlimit is None: # 대기행렬 한계가 없으면 byte_size 업데이트 한 후 store.put
             self.byte_size = tmp_byte_count
             return self.store.put(pkt)
-        if self.limit_bytes and tmp_byte_count >= self.qlimit: #
+        if self.limit_bytes and tmp_byte_count >= self.qlimit:
             self.packets_drop += 1
             return # packet 손실 (제품의 경우 소멸)
         elif not self.limit_bytes and len(self.store.items) >= self.qlimit-1:
