@@ -23,7 +23,8 @@ NO_CUSTOMERS = 10  # 총 고객 수
 INTERVAL_CUSTOMERS = 10.0  # 도착간 시간 간격 (inter-arrival time)
 MIN_PATIENCE = 1  # Minimum customer patience
 MAX_PATIENCE = 3  # Maximum customer patience
-
+time_in_bank = 25
+num_counter = 2
 
 def source(env, number, interval, counter):
 
@@ -32,7 +33,7 @@ def source(env, number, interval, counter):
 
         # customer 함수(고객 이름, 리소스, 업무시간)를 프로세스에 탑재
         # customer 함수(name, resource, working time)를 프로세스에 탑재
-        env.process(customer(env, 'Customer%02d' % i, counter, time_in_bank=12.0))
+        env.process(customer(env, 'Customer%02d' % i, counter, time_in_bank))
 
         #도착간 시간간격 시간 진행
         t = random.expovariate(1.0 / interval)
@@ -78,6 +79,17 @@ random.seed(RANDOM_SEED)
 env = simpy.Environment()
 
 # Start processes and run
-counter = simpy.Resource(env, capacity=1)
+counter = simpy.Resource(env, capacity=num_counter)
 env.process(source(env, NO_CUSTOMERS, INTERVAL_CUSTOMERS, counter))
-env.run(200)
+
+for i in range(3):
+    random.seed(RANDOM_SEED)
+    env = simpy.Environment()
+
+    counter = simpy.Resource(env, capacity=num_counter)
+    env.process(source(env, NO_CUSTOMERS, INTERVAL_CUSTOMERS, counter))
+
+    env.run(200)
+    time_in_bank -= 1
+
+
