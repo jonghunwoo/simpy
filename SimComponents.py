@@ -12,7 +12,7 @@ from simpy.resources import base
 from heapq import heappush, heappop
 import math
 
-class Packet(object):
+class Part(object):
     """ A very simple class that represents a packet.
         This packet will run through a queue at a switch output port.
         We use a float to represent the size of the packet in bytes so that
@@ -32,7 +32,7 @@ class Packet(object):
             small integer that can be used to identify a flow
     """
     def __init__(self, time, size, id, src="a", dst="z", flow_id=0):
-        self.time = time # packet 생성 시간 저장 (각 공정 또는 종료점에서 각 packet의 시스템 리드타임을 측정할 수 있음 - pkt.time)
+        self.time = time # part 생성 시간 저장 (각 공정 또는 종료점에서 각 packet의 시스템 리드타임을 측정할 수 있음 - pkt.time)
         self.size = size
         self.id = id
         self.src = src
@@ -43,7 +43,7 @@ class Packet(object):
         return "id: {}, src: {}, time: {}, size: {}".format(self.id, self.src, self.time, self.size)
 
 
-class PacketGenerator(object):
+class Source(object):
     """ Generates packets with given inter-arrival time distribution.
         Set the "out" member variable to the entity to receive the packet.
 
@@ -70,7 +70,7 @@ class PacketGenerator(object):
         self.initial_delay = initial_delay
         self.finish = finish
         self.out = None
-        self.packets_sent = 0
+        self.parts_sent = 0
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
         self.flow_id = flow_id
 
@@ -84,17 +84,17 @@ class PacketGenerator(object):
             yield self.env.timeout(adist)
 
             # define number of packets
-            self.packets_sent += 1
+            self.parts_sent += 1
             sdist = self.sdist()
-            #print('Packet size is ', math.ceil(sdist))
+            #print('Part size is ', math.ceil(sdist))
 
             # create packet with assigned attributes
-            p = Packet(self.env.now, math.ceil(sdist), self.packets_sent, src=self.id, flow_id=self.flow_id)
+            p = Part(self.env.now, math.ceil(sdist), self.parts_sent, src=self.id, flow_id=self.flow_id)
             #print(p.__repr__())
             self.out.put(p)
 
 
-class PacketSink(object):
+class Sink(object):
     """ Receives packets and collects delay information into the
         waits list. You can then use this list to look at delay statistics.
 
@@ -125,7 +125,7 @@ class PacketSink(object):
         self.waits = []
         self.arrivals = []
         self.debug = debug
-        self.packets_rec = 0
+        self.parts_rec = 0
         self.bytes_rec = 0
         self.selector = selector
         self.last_arrival = 0.0
@@ -141,13 +141,13 @@ class PacketSink(object):
                 else:
                     self.arrivals.append(now - self.last_arrival)
                 self.last_arrival = now
-            self.packets_rec += 1 # Sink에 도착한 packet 수 저장
+            self.parts_rec += 1 # Sink에 도착한 packet 수 저장
             self.bytes_rec += pkt.size
             if self.debug:
                 print(pkt)
 
 
-class SwitchPort(object):
+class Process(object):
     """ Models a switch output port with a given rate and buffer size limit in bytes.
         Set the "out" member variable to the entity to receive the packet.
 
@@ -170,14 +170,15 @@ class SwitchPort(object):
         self.rate = rate
         self.env = env
         self.out = None
-        self.packets_rec = 0
-        self.packets_drop = 0
+        self.parts_rec = 0
+        self.parts_drop = 0
         self.qlimit = qlimit
         self.limit_bytes = limit_bytes
         self.byte_size = 0  # Current size of the queue in bytes
         self.debug = debug
         self.busy = 0  # Used to track if a packet is currently being sent
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
+        self.working_time = 0
 
     def run(self):
         while True:
@@ -186,18 +187,18 @@ class SwitchPort(object):
             self.busy = 1
             self.byte_size -= msg.size
 
-            # 작업 시간 - 향후 packet에 해당하는 제품 속성으로부터 추출하는 코드 추가
+            # 작업 시간 - 향후 part에 해당하는 제품 속성으로부터 추출하는 코드 추가
             #yield self.env.timeout(msg.size*8.0/self.rate)
-            yield self.env.timeout(random.randint(self.rate-1, self.rate+1))
+
+            self.start_time = self.env.now
+            yield self.env.timeout(self.rate)
+            self.working_time += self.env.now - self.start_time
 
             # 이 부분에 다음 연결된 요소의 queue length를 확인하여 qlimit보다 작을때까지 대기하도록 하는 코드 필요
             # self.out.qlimit : 다음 연결된 요소의 qlimit
             # len(self.out.store.items) : 다음 연결된 요소의 pkt 갯수
-            print(self.out.name)
-            print(self.out)
-            if self.out.name != 'Sink':
-                #print(self.name, self.out.qlimit, len(self.out.store.itmes), ' at ', self.env.now)
-                print(self.name, self.out.qlimit, ' at ', self.env.now)
+            #if self.out.name != 'Sink':
+                #print(self.name, self.out.qlimit, ' at ', self.env.now)
             #wait until something changed...
             self.out.put(msg)
             self.busy = 0
@@ -205,22 +206,22 @@ class SwitchPort(object):
                 print(msg)
 
     def put(self, pkt):
-        self.packets_rec += 1
+        self.parts_rec += 1
         tmp_byte_count = self.byte_size + pkt.size
         if self.qlimit is None: # 대기행렬 한계가 없으면 byte_size 업데이트 한 후 store.put
             self.byte_size = tmp_byte_count
             return self.store.put(pkt)
         if self.limit_bytes and tmp_byte_count >= self.qlimit:
-            self.packets_drop += 1
+            self.parts_drop += 1
             return # packet 손실 (제품의 경우 소멸)
         elif not self.limit_bytes and len(self.store.items) >= self.qlimit-1:
-            self.packets_drop += 1
+            self.parts_drop += 1
         else:
             self.byte_size = tmp_byte_count
             return self.store.put(pkt)
 
 
-class PortMonitor(object):
+class Monitor(object):
     """ A monitor for an SwitchPort. Looks at the number of items in the SwitchPort
         in service + in the queue and records that info in the sizes[] list. The
         monitor looks at the port at time intervals given by the distribution dist.
@@ -275,10 +276,10 @@ class RandomBrancher(object):
             raise Exception("Probabilities must sum to 1.0")
         self.n_ports = len(self.probs)
         self.outs = [None for i in range(self.n_ports)]  # Create and initialize output ports
-        self.packets_rec = 0
+        self.parts_rec = 0
 
     def put(self, pkt):
-        self.packets_rec += 1
+        self.parts_rec += 1
         rand = random.random()
         for i in range(self.n_ports):
             if rand < self.ranges[i]:
@@ -301,10 +302,10 @@ class FlowDemux(object):
         def __init__(self, outs=None, default=None):
             self.outs = outs
             self.default = default
-            self.packets_rec = 0
+            self.parts_rec = 0
 
         def put(self, pkt):
-            self.packets_rec += 1
+            self.parts_rec += 1
             flow_id = pkt.flow_id
             if flow_id < len(self.outs):
                 self.outs[flow_id].put(pkt)
@@ -482,8 +483,8 @@ class ShaperTokenBucket(object):
         self.rate = rate
         self.env = env
         self.out = None
-        self.packets_rec = 0
-        self.packets_sent = 0
+        self.parts_rec = 0
+        self.parts_sent = 0
         self.b_size = b_size
         self.peak = peak
 
@@ -516,12 +517,12 @@ class ShaperTokenBucket(object):
             else:
                 yield self.env.timeout(msg.size*8.0/self.peak)
                 self.out.put(msg)
-            self.packets_sent += 1
+            self.parts_sent += 1
             if self.debug:
                 print(msg)
 
     def put(self, pkt):
-        self.packets_rec += 1
+        self.parts_rec += 1
         return self.store.put(pkt)
 
 
@@ -548,8 +549,8 @@ class VirtualClockServer(object):
         self.vticks = vticks
         self.auxVCs = [0.0 for i in range(len(vticks))]  # Initialize all the auxVC variables
         self.out = None
-        self.packets_rec = 0
-        self.packets_drop = 0
+        self.parts_rec = 0
+        self.parts_drop = 0
         self.debug = debug
         self.store = StampedStore(env)
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
@@ -562,7 +563,7 @@ class VirtualClockServer(object):
             self.out.put(msg)
 
     def put(self, pkt):
-        self.packets_rec += 1
+        self.parts_rec += 1
         now = self.env.now
         flow_id = pkt.flow_id
         # Update of auxVC for the flow. We assume that vticks is the desired bit time
@@ -598,8 +599,8 @@ class WFQServer(object):
         self.active_set = set()
         self.vtime = 0.0
         self.out = None
-        self.packets_rec = 0
-        self.packets_drop = 0
+        self.parts_rec = 0
+        self.parts_drop = 0
         self.debug = debug
         self.store = StampedStore(env)
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
@@ -624,7 +625,7 @@ class WFQServer(object):
             self.out.put(msg)
 
     def put(self, pkt):
-        self.packets_rec += 1
+        self.parts_rec += 1
         now = self.env.now
         flow_id = pkt.flow_id
         self.flow_queue_count[flow_id] += 1
