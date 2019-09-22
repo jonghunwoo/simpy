@@ -11,6 +11,7 @@ from simpy.core import BoundClass
 from simpy.resources import base
 from heapq import heappush, heappop
 import math
+import time
 import threading
 
 class Part(object):
@@ -85,14 +86,11 @@ class Source(object):
             temp_time = self.env.now
             yield self.env.timeout(adist)
             #print("IAT : {:4.2f}".format(self.env.now-temp_time))
-            # define number of packets
             self.parts_sent += 1
             sdist = self.sdist()
-            #print('Part size is ', math.ceil(sdist))
 
             # create packet with assigned attributes
             p = Part(self.env.now, math.ceil(sdist), self.parts_sent, src=self.id, flow_id=self.flow_id)
-            #print(p.__repr__())
             self.out.put(p)
 
 
@@ -143,7 +141,7 @@ class Sink(object):
                 else:
                     self.arrivals.append(now - self.last_arrival)
                 self.last_arrival = now
-            self.parts_rec += 1 # Sink에 도착한 packet 수 저장
+            self.parts_rec += 1 # Sink에 도착한 parts 수 저장
             self.bytes_rec += pkt.size
             if self.debug:
                 print(pkt)
@@ -200,11 +198,33 @@ class Process(object):
             if self.debug:
                 print(msg)
 
-    def put(self, pkt):
+    def put(self, part):
         self.parts_rec += 1
 
-        return self.store.put(pkt)
+        if self.qlimit is None:
+            return self.store.put(part)
+        elif len(self.store.items) >= self.qlimit - 1:
+            # Should be added waiting function until self.qlimit is decreased
 
+            ### Try 1
+            ### event = threading.Event()를 이용하여 event 객체를 생성하고, set(), clear(), wait(), isSet()
+            ### 를 이용하려고 했으나, Process class가 thread로 start 되어야 가능하기 때문에 Process class에
+            ### threading을 추가하는 것은 가능해보이지만, SimPy 구조(process들을 paralle하게 쌓아가는)와 차이가
+            ### 있어 보여 추가 시도 중지
+
+            ### Try 2
+            ### 다음으로는, SimPy.event를 생성하고, 이 이벤트의 succeed() 함수를 이용하여 qlimit에 다다랐을 겨우
+            ### 대기하는 기능을 사용하려고 했으나 succedd()로 wait를 해제한 후 다시 event를 원상태로 복귀하는 방법을
+            ### 찾지 못해서 실패 (SimPy 라이브러리의 events.py까지 수정해보았으나 eve.schedule에 추가되는 부분의
+            ### 작동 원리 파악 실패)
+
+            while len(self.store.items) >= self.qlimit - 1:
+                self.env.timeout(1)
+
+            return self.store.put(part)
+            #self.parts_drop += 1
+        else:
+            return self.store.put(part)
 
 class Monitor(object):
     """ A monitor for an SwitchPort. Looks at the number of items in the SwitchPort

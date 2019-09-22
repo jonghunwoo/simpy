@@ -6,9 +6,9 @@ Released under the MIT license
 import random
 import functools
 import simpy
-import numpy as np
-import matplotlib.pyplot as plt
 from SimComponents_rev import Source, Sink, Process, Monitor, RandomBrancher
+#import numpy as np
+#import matplotlib.pyplot as plt
 #from keras.models import load_model
 
 if __name__ == '__main__':
@@ -26,9 +26,9 @@ if __name__ == '__main__':
     ct1 = 5
     ct2 = 5
     ct3 = 5
-    var1 = 1
-    var2 = 1
-    var3 = 1
+    var1 = 1.5
+    var2 = 1.5
+    var3 = 1.5
 
     proc_time1 = functools.partial(random.normalvariate,ct1,var1)
     proc_time2 = functools.partial(random.normalvariate,ct2,var2)
