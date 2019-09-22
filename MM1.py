@@ -8,7 +8,7 @@ import functools
 import simpy
 import numpy as np
 import matplotlib.pyplot as plt
-from SimComponents import Source, Sink, Process, Monitor, RandomBrancher
+from SimComponents_rev import Source, Sink, Process, Monitor, RandomBrancher
 #from keras.models import load_model
 
 if __name__ == '__main__':
