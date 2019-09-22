@@ -24,8 +24,8 @@ if __name__ == '__main__':
     samp_dist = functools.partial(random.expovariate, 1)
 
     ct1 = 5
-    ct2 = 5
-    ct3 = 5
+    ct2 = 10
+    ct3 = 10
     var1 = 1.5
     var2 = 1.5
     var3 = 1.5
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     proc_time2 = functools.partial(random.normalvariate,ct2,var2)
     proc_time3 = functools.partial(random.normalvariate,ct3,var3)
 
-    RUN_TIME = 200
+    RUN_TIME = 10000
 
     # Create the SimPy environment
     env = simpy.Environment()
@@ -79,9 +79,13 @@ if __name__ == '__main__':
     print("Sink: Last 10 sink arrival times: " + ", ".join(["{:.3f}".format(x) for x in Sink.arrivals[-10:]])) # 모든 공정을 거친 packet이 최종 노드에 도착하는 시간 간격 - TH 계산 가능
     #print("Sink: average wait = {:.3f}".format(sum(Sink.waits)/len(Sink.waits))) # 모든 parts들의 리드타임의 평균
 
-    print("received: {}, dropped {}, sent {}".format(Process1.parts_rec, Process1.parts_drop, Source.parts_sent))
+    print("sent {}".format(Source.parts_sent))
+    print("received: {}, dropped {} of {}".format(Process1.parts_rec, Process1.parts_drop, Process1.name))
+    print("received: {}, dropped {} of {}".format(Process2.parts_rec, Process2.parts_drop, Process2.name))
+    print("received: {}, dropped {} of {}".format(Process3.parts_rec, Process3.parts_drop, Process3.name))
+    print("received: {}, dropped {} of {}".format(Process3_1.parts_rec, Process3_1.parts_drop, Process3_1.name))
 
-    print("loss rate: {}".format(float(Process1.parts_drop)/Process1.parts_rec)) # SwitchPort들이 qlimit에 도달한 상태에서 packet이 도착하면 loss로 처리학고 있음 - 대기하도록 SimComponent 코드 수정 필요
+    #print("loss rate: {}".format(float(Process1.parts_drop)/Process1.parts_rec)) # SwitchPort들이 qlimit에 도달한 상태에서 packet이 도착하면 loss로 처리학고 있음 - 대기하도록 SimComponent 코드 수정 필요
     #print("loss rate: {}".format(float(Process2.parts_drop)/Process2.parts_rec))
     #print("loss rate: {}".format(float(Process3.parts_drop)/Process3.parts_rec))
 

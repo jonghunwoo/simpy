@@ -91,6 +91,13 @@ class Source(object):
 
             # create packet with assigned attributes
             p = Part(self.env.now, math.ceil(sdist), self.parts_sent, src=self.id, flow_id=self.flow_id)
+
+            if (self.out.__class__.__name__ == 'Process'):
+                while len(self.out.store.items) >= self.out.qlimit - 1:
+                    print('start loop at', self.__class__.__name__, self.env.now)
+                    yield self.env.timeout(0.1)
+                    print('end loop')
+
             self.out.put(p)
 
 
@@ -179,9 +186,11 @@ class Process(object):
         self.busy = 0  # Used to track if a part is currently being sent
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
         self.working_time = 0
+        print(self.name)
 
     def run(self):
         while True:
+            print(self.name,'start running')
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
             self.busy = 1
             self.byte_size -= msg.size
@@ -191,39 +200,45 @@ class Process(object):
             yield self.env.timeout(proc_time)
             self.working_time += self.env.now - self.start_time
 
-            self.out.put(msg)
+            if(self.out.__class__.__name__ == 'Process'):
+                print(self.name, 'qlimit :', self.qlimit, 'queue length :', len(self.store.items))
+                while len(self.out.store.items) >= self.out.qlimit - 1:
+                    print('start loop at', self.name, self.env.now)
+                    yield self.env.timeout(0.1)
+                    print('end loop')
 
+            self.out.put(msg)
             self.busy = 0
 
             if self.debug:
                 print(msg)
 
     def put(self, part):
+        print(self.name, "'s put triggered")
         self.parts_rec += 1
 
         if self.qlimit is None:
+            print(self.name, ': infinite qlimit')
             return self.store.put(part)
         elif len(self.store.items) >= self.qlimit - 1:
-            # Should be added waiting function until self.qlimit is decreased
+            print('dropped at', self.name)
+            self.parts_drop += 1
 
+            ### Should be added waiting function until self.qlimit is decreased
             ### Try 1
             ### event = threading.Event()를 이용하여 event 객체를 생성하고, set(), clear(), wait(), isSet()
             ### 를 이용하려고 했으나, Process class가 thread로 start 되어야 가능하기 때문에 Process class에
             ### threading을 추가하는 것은 가능해보이지만, SimPy 구조(process들을 paralle하게 쌓아가는)와 차이가
             ### 있어 보여 추가 시도 중지
-
             ### Try 2
             ### 다음으로는, SimPy.event를 생성하고, 이 이벤트의 succeed() 함수를 이용하여 qlimit에 다다랐을 겨우
             ### 대기하는 기능을 사용하려고 했으나 succedd()로 wait를 해제한 후 다시 event를 원상태로 복귀하는 방법을
             ### 찾지 못해서 실패 (SimPy 라이브러리의 events.py까지 수정해보았으나 eve.schedule에 추가되는 부분의
             ### 작동 원리 파악 실패)
+            #return self.store.put(part)
 
-            while len(self.store.items) >= self.qlimit - 1:
-                self.env.timeout(1)
-
-            return self.store.put(part)
-            #self.parts_drop += 1
         else:
+            print(self.name, ': accept transfer')
             return self.store.put(part)
 
 class Monitor(object):
