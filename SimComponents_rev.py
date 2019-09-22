@@ -11,6 +11,7 @@ from simpy.core import BoundClass
 from simpy.resources import base
 from heapq import heappush, heappop
 import math
+import threading
 
 class Part(object):
     """ A very simple class that represents a packet.
@@ -83,7 +84,7 @@ class Source(object):
             adist = self.adist()
             temp_time = self.env.now
             yield self.env.timeout(adist)
-            print("IAT : {:4.2f}".format(self.env.now-temp_time))
+            #print("IAT : {:4.2f}".format(self.env.now-temp_time))
             # define number of packets
             self.parts_sent += 1
             sdist = self.sdist()
@@ -177,51 +178,32 @@ class Process(object):
         self.limit_bytes = limit_bytes
         self.byte_size = 0  # Current size of the queue in bytes
         self.debug = debug
-        self.busy = 0  # Used to track if a packet is currently being sent
+        self.busy = 0  # Used to track if a part is currently being sent
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
         self.working_time = 0
 
     def run(self):
         while True:
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
-            # 구동 상태로 속성 전환
             self.busy = 1
             self.byte_size -= msg.size
             proc_time = self.rate()
 
-            # 작업 시간 - 향후 part에 해당하는 제품 속성으로부터 추출하는 코드 추가
-            #yield self.env.timeout(msg.size*8.0/self.rate)
-
             self.start_time = self.env.now
             yield self.env.timeout(proc_time)
             self.working_time += self.env.now - self.start_time
-            print(self.name, "rate is ", proc_time, " working time : ", self.env.now - self.start_time)
 
-            # 이 부분에 다음 연결된 요소의 queue length를 확인하여 qlimit보다 작을때까지 대기하도록 하는 코드 필요
-            # self.out.qlimit : 다음 연결된 요소의 qlimit
-            # len(self.out.store.items) : 다음 연결된 요소의 pkt 갯수
-            #if self.out.name != 'Sink':
-                #print(self.name, self.out.qlimit, ' at ', self.env.now)
-            #wait until something changed...
             self.out.put(msg)
+
             self.busy = 0
+
             if self.debug:
                 print(msg)
 
     def put(self, pkt):
         self.parts_rec += 1
-        tmp_byte_count = self.byte_size + pkt.size
-        if self.qlimit is None: # 대기행렬 한계가 없으면 byte_size 업데이트 한 후 store.put
-            self.byte_size = tmp_byte_count
-            return self.store.put(pkt)
-        if self.limit_bytes and tmp_byte_count >= self.qlimit:
-            self.parts_drop += 1
-            return # packet 손실 (제품의 경우 소멸)
-        elif not self.limit_bytes and len(self.store.items) >= self.qlimit-1:
-            self.parts_drop += 1
-        else:
-            self.byte_size = tmp_byte_count
-            return self.store.put(pkt)
+
+        return self.store.put(pkt)
 
 
 class Monitor(object):
