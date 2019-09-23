@@ -19,8 +19,8 @@ def background_calculation():
 
 def main():
 
-    #thread = threading.Thread(target=background_calculation)
-    #thread.start()
+    thread = threading.Thread(target=background_calculation)
+    thread.start()
 
     # wait here for the result to be available before continuing
     result_available.wait()

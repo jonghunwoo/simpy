@@ -1,7 +1,6 @@
 """
-Example use of SimComponents to simulate a packet queue with M/M/1 characteristics.
-Copyright 2014 Dr. Greg M. Bernstein
-Released under the MIT license
+Example use of SimComponents to simulate a certain jobshop model
+Copyright 2019 Dr. Jonathan Woo
 """
 import random
 import functools
@@ -24,11 +23,11 @@ if __name__ == '__main__':
     samp_dist = functools.partial(random.expovariate, 1)
 
     ct1 = 5
-    ct2 = 10
-    ct3 = 10
-    var1 = 1.5
-    var2 = 1.5
-    var3 = 1.5
+    ct2 = 5
+    ct3 = 5
+    var1 = 1
+    var2 = 1
+    var3 = 1
 
     proc_time1 = functools.partial(random.normalvariate,ct1,var1)
     proc_time2 = functools.partial(random.normalvariate,ct2,var2)
