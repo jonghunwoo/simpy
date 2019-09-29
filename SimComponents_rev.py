@@ -11,8 +11,6 @@ from simpy.core import BoundClass
 from simpy.resources import base
 from heapq import heappush, heappop
 import math
-import time
-import threading
 
 COUNT = 0
 COUNT2 = 0
@@ -198,7 +196,7 @@ class Process(object):
         self.busy = 0  # Used to track if a part is currently being sent
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
         self.working_time = 0
-        self.next_run = 0.0 #process에서 다음 이벤트가 발생하는 시간을 저장하여 wait until에 활용
+        self.next_run = 0.0 #used for save the waiting time of self process until the work of follwoing process is finished
         print(self.name)
 
     def run(self):
@@ -218,16 +216,14 @@ class Process(object):
                 print(self.name, 'qlimit :', self.qlimit, 'queue length :', len(self.store.items))
                 while len(self.out.store.items) >= self.out.qlimit - 1:
                     print('start loop at', self.name, self.env.now)
-                    #process에서 loop가 실행되는 횟수
+                    #counting the number of loop
                     global COUNT2
                     COUNT2 += 1
-                    # timeout 0.1로 사용한 경우 loop 약 50000번, 수정한 경우 loop 횟수 약 1000번
                     print(f'num process loop: {COUNT2}')
-                    #후공정때문에 대기해야하는 경우 next_run을 후공정의 다음 이벤트까지로 업데이트 해줌
+                    #update waiting time until next_run of follwoing process
                     self.next_run += self.out.next_run - self.env.now + 1e-6
-                    # 후공정과 동일한 시간에 event를 만들면 후공정보다 먼저 실행되는 경우가 있어 미소값을 더해줌
+                    # Adding small value(1e-6) for preventing the event collision between self process and following process
                     yield self.env.timeout(self.out.next_run - self.env.now + 1e-6)
-                    #yield self.env.timeout(0.1)
                     print('end loop')
 
             self.out.put(msg)
@@ -246,19 +242,6 @@ class Process(object):
         elif len(self.store.items) >= self.qlimit - 1:
             print('dropped at', self.name)
             self.parts_drop += 1
-
-            ### Should be added waiting function until self.qlimit is decreased
-            ### Try 1
-            ### event = threading.Event()를 이용하여 event 객체를 생성하고, set(), clear(), wait(), isSet()
-            ### 를 이용하려고 했으나, Process class가 thread로 start 되어야 가능하기 때문에 Process class에
-            ### threading을 추가하는 것은 가능해보이지만, SimPy 구조(process들을 paralle하게 쌓아가는)와 차이가
-            ### 있어 보여 추가 시도 중지
-            ### Try 2
-            ### 다음으로는, SimPy.event를 생성하고, 이 이벤트의 succeed() 함수를 이용하여 qlimit에 다다랐을 겨우
-            ### 대기하는 기능을 사용하려고 했으나 succedd()로 wait를 해제한 후 다시 event를 원상태로 복귀하는 방법을
-            ### 찾지 못해서 실패 (SimPy 라이브러리의 events.py까지 수정해보았으나 eve.schedule에 추가되는 부분의
-            ### 작동 원리 파악 실패)
-            #return self.store.put(part)
 
         else:
             print(self.name, ': accept transfer')
@@ -681,3 +664,8 @@ class WFQServer(object):
         # print "Flow id = {}, packet_id = {}, F_time = {}".format(flow_id, pkt.id, self.F_times[flow_id])
         self.last_update = now
         return self.store.put((self.F_times[flow_id], pkt))
+
+#I created an event object using event = threading.Event () and tried to use set (), clear (), wait () and isSet () but the process class must be started as a thread.
+#This logic determines that there is a difference from the SimPy structure (paralleally stacking processes), so it stops trying.
+
+#I tried using succeed () of simpy.events to implement the wait function for a specific point in time, but after executing succeed (), the event could not be restored.
