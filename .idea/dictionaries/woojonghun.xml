@@ -2,13 +2,16 @@
   <dictionary name="woojonghun">
     <words>
       <w>adist</w>
+      <w>brancher</w>
       <w>functools</w>
       <w>jobshop</w>
       <w>length를</w>
+      <w>probs</w>
       <w>proc</w>
       <w>qlimit</w>
       <w>qlimit보다</w>
       <w>samp</w>
+      <w>simpy</w>
     </words>
   </dictionary>
 </component>
