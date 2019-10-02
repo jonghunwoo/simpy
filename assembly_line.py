@@ -36,14 +36,14 @@ if __name__ == '__main__':
     Process4 = Process(env, 'Process4', proc_time4, qlimit=5, limit_bytes=False)
     Process5 = Process(env, 'Process5', proc_time5, qlimit=5, limit_bytes=False)
 
-    # Using a PortMonitor to track queue sizes over time
+    # Using a PortMonitor to track each status over time
     Monitor1 = Monitor(env, Process1, samp_dist)
     Monitor2 = Monitor(env, Process2, samp_dist)
     Monitor3 = Monitor(env, Process3, samp_dist)
     Monitor4 = Monitor(env, Process4, samp_dist)
     Monitor5 = Monitor(env, Process5, samp_dist)
 
-    # Wire packet generators, switch ports, and sinks together
+    # Connection
     Source.out = Process1
     Process1.out = Process2
     Process2.out = Process3

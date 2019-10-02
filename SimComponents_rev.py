@@ -47,6 +47,36 @@ class Part(object):
     def __repr__(self):
         return "id: {}, src: {}, time: {}, size: {}".format(self.id, self.src, self.time, self.size)
 
+class Part_with_df(object):
+    """ A very simple class that represents a packet.
+        This packet will run through a queue at a switch output port.
+        We use a float to represent the size of the packet in bytes so that
+        we can compare to ideal M/M/1 queues.
+
+        Parameters
+        ----------
+        time : float
+            the time the packet arrives at the output queue.
+        df : dataframe
+            cycle time of each process
+        id : int
+            an identifier for the packet
+        src, dst : int
+            identifiers for source and destination
+        flow_id : int
+            small integer that can be used to identify a flow
+    """
+    def __init__(self, time, df, id, src="a", dst="z", flow_id=0):
+        self.time = time
+        self.df = df
+        self.id = id
+        self.src = src
+        self.dst = dst
+        self.flow_id = flow_id
+
+    def __repr__(self):
+        return "id: {}, src: {}, time: {}, df: {}".format(self.id, self.src, self.time, self.df)
+
 
 class Source(object):
     """ Generates packets with given inter-arrival time distribution.
@@ -109,7 +139,7 @@ class Source(object):
             self.out.put(p)
 
 
-class Source_with_fixed_ct(object):
+class Source_with_dataframe(object):
 
     def __init__(self, env, id, adist, df, initial_delay=0, finish=float("inf"), flow_id=0):
         self.id = id
@@ -130,10 +160,10 @@ class Source_with_fixed_ct(object):
             adist = self.adist()
             yield self.env.timeout(adist)
             self.parts_sent += 1
-            sdist = self.sdist()
 
-            # create packet with assigned attributes
-            p = Part(self.env.now, math.ceil(sdist), self.parts_sent, src=self.id, flow_id=self.flow_id)
+            # create product with assigned attributes
+            p = Part_with_df(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
+            print(p)
 
             if (self.out.__class__.__name__ == 'Process'):
                 while len(self.out.store.items) >= self.out.qlimit - 1:
@@ -239,11 +269,9 @@ class Process(object):
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
         self.working_time = 0
         self.next_run = 0.0 #process에서 다음 이벤트가 발생하는 시간을 저장하여 wait until에 활용
-        print(self.name)
 
     def run(self):
         while True:
-            print(self.name,'start running')
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
             self.busy = 1
             proc_time = self.rate()
@@ -254,7 +282,7 @@ class Process(object):
             self.working_time += self.env.now - self.start_time
 
             if(self.out.__class__.__name__ == 'Process'):
-                print(self.name, 'qlimit :', self.qlimit, 'queue length :', len(self.store.items))
+                #print(self.name, 'qlimit :', self.qlimit, 'queue length :', len(self.store.items))
                 while len(self.out.store.items) >= self.out.qlimit - 1:
                     #print('start loop at', self.name, self.env.now)
                     #process에서 loop가 실행되는 횟수
