@@ -64,8 +64,6 @@ class Source(object):
             Starts generation after an initial delay. Default = 0
         finish : number
             Stops generation at the finish time. Default is infinite
-
-
     """
     def __init__(self, env, id,  adist, sdist, initial_delay=0, finish=float("inf"), flow_id=0):
         self.id = id
@@ -76,7 +74,7 @@ class Source(object):
         self.finish = finish
         self.out = None
         self.parts_sent = 0
-        self.action = env.process(self.run())  # starts the run() method as a SimPy process
+        self.action = env.process(self.run())
         self.flow_id = flow_id
 
     def run(self):
@@ -86,9 +84,7 @@ class Source(object):
         while self.env.now < self.finish:
             # wait for next transmission
             adist = self.adist()
-            temp_time = self.env.now
             yield self.env.timeout(adist)
-            #print("IAT : {:4.2f}".format(self.env.now-temp_time))
             self.parts_sent += 1
             sdist = self.sdist()
 
@@ -97,18 +93,62 @@ class Source(object):
 
             if (self.out.__class__.__name__ == 'Process'):
                 while len(self.out.store.items) >= self.out.qlimit - 1:
-                    print('start loop at', self.__class__.__name__, self.env.now)
-                    # source에서 loop가 실행되는 횟수
+                    #print('start loop at', self.__class__.__name__, self.env.now)
+                    #source에서 loop가 실행되는 횟수
                     global COUNT
                     COUNT += 1
                     #timeout 0.1로 사용한 경우 loop 약 50000번, 수정한 경우 loop 횟수 약 1500번
-                    print(f'num source loop: {COUNT}')
+                    #print(f'num source loop: {COUNT}')
                     #후공정과 동일한 시간에 event를 만들면 후공정보다 먼저 실행되는 경우가 있어 미소값을 더해줌
                     yield self.env.timeout(self.out.next_run - self.env.now + 1e-6)
                     #queue에서 가장 빠른 이벤트를 가져오는 경우 모든 이벤트를 체크하므로 loop 횟수가 많아지므로 비효율적임
                     #yield self.env.timeout(self.env._queue[0][0] - self.env.now)
                     #yield self.env.timeout(0.1)
-                    print('end loop')
+                    #print('end loop')
+
+            self.out.put(p)
+
+
+class Source_with_fixed_ct(object):
+
+    def __init__(self, env, id, adist, df, initial_delay=0, finish=float("inf"), flow_id=0):
+        self.id = id
+        self.env = env
+        self.adist = adist
+        self.df = df
+        self.initial_delay = initial_delay
+        self.finish = finish
+        self.out = None
+        self.parts_sent = 0
+        self.action = env.process(self.run())
+        self.flow_id = flow_id
+
+    def run(self):
+        yield self.env.timeout(self.initial_delay)
+        while self.env.now < self.finish:
+            # wait for next transmission
+            adist = self.adist()
+            yield self.env.timeout(adist)
+            self.parts_sent += 1
+            sdist = self.sdist()
+
+            # create packet with assigned attributes
+            p = Part(self.env.now, math.ceil(sdist), self.parts_sent, src=self.id, flow_id=self.flow_id)
+
+            if (self.out.__class__.__name__ == 'Process'):
+                while len(self.out.store.items) >= self.out.qlimit - 1:
+                    #print('start loop at', self.__class__.__name__, self.env.now)
+                    #source에서 loop가 실행되는 횟수
+                    global COUNT
+                    COUNT += 1
+                    #timeout 0.1로 사용한 경우 loop 약 50000번, 수정한 경우 loop 횟수 약 1500번
+                    #print(f'num source loop: {COUNT}')
+                    #후공정과 동일한 시간에 event를 만들면 후공정보다 먼저 실행되는 경우가 있어 미소값을 더해줌
+                    yield self.env.timeout(self.out.next_run - self.env.now + 1e-6)
+                    #queue에서 가장 빠른 이벤트를 가져오는 경우 모든 이벤트를 체크하므로 loop 횟수가 많아지므로 비효율적임
+                    #yield self.env.timeout(self.env._queue[0][0] - self.env.now)
+                    #yield self.env.timeout(0.1)
+                    #print('end loop')
 
             self.out.put(p)
 
@@ -206,7 +246,6 @@ class Process(object):
             print(self.name,'start running')
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
             self.busy = 1
-            self.byte_size -= msg.size
             proc_time = self.rate()
 
             self.start_time = self.env.now
@@ -217,18 +256,18 @@ class Process(object):
             if(self.out.__class__.__name__ == 'Process'):
                 print(self.name, 'qlimit :', self.qlimit, 'queue length :', len(self.store.items))
                 while len(self.out.store.items) >= self.out.qlimit - 1:
-                    print('start loop at', self.name, self.env.now)
+                    #print('start loop at', self.name, self.env.now)
                     #process에서 loop가 실행되는 횟수
                     global COUNT2
                     COUNT2 += 1
                     # timeout 0.1로 사용한 경우 loop 약 50000번, 수정한 경우 loop 횟수 약 1000번
-                    print(f'num process loop: {COUNT2}')
+                    #print(f'num process loop: {COUNT2}')
                     #후공정때문에 대기해야하는 경우 next_run을 후공정의 다음 이벤트까지로 업데이트 해줌
                     self.next_run += self.out.next_run - self.env.now + 1e-6
                     # 후공정과 동일한 시간에 event를 만들면 후공정보다 먼저 실행되는 경우가 있어 미소값을 더해줌
                     yield self.env.timeout(self.out.next_run - self.env.now + 1e-6)
                     #yield self.env.timeout(0.1)
-                    print('end loop')
+                    #print('end loop')
 
             self.out.put(msg)
             self.busy = 0
