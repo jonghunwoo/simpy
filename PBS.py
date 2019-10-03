@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev import Source, Source_with_dataframe, Sink, Process, Monitor, RandomBrancher
+from SimComponents_rev import Source, DataframeSource, Sink, Process, Monitor, RandomBrancher
 
 """ Data loading
     request raw excel file from github of jonghunwoo
@@ -55,11 +55,11 @@ adist = functools.partial(random.randrange,3,7)
 samp_dist = functools.partial(random.expovariate, 1)
 proc_time = functools.partial(random.normalvariate,5,1)
 
-RUN_TIME = 10000
+RUN_TIME = 500
 
 env = simpy.Environment()
 
-Source = Source_with_dataframe(env, "Source", adist, df1)
+Source = DataframeSource(env, "Source", adist, df1)
 Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
 
 Process1 = Process(env, 'Process1', proc_time, qlimit=1, limit_bytes=False)
@@ -91,3 +91,36 @@ Process7.out = Sink
 
 # Run it
 env.run(until=RUN_TIME)
+
+print('#'*80)
+print("Results of simulation")
+print('#'*80)
+print("Lead time of Last 10 Parts: " + ", ".join(["{:.3f}".format(x) for x in Sink.waits[-10:]]))
+
+print("Process1: Last 10 queue sizes: {}".format(Monitor1.sizes[-10:]))
+print("Process2: Last 10 queue sizes: {}".format(Monitor2.sizes[-10:]))
+print("Process3: Last 10 queue sizes: {}".format(Monitor3.sizes[-10:]))
+print("Process4: Last 10 queue sizes: {}".format(Monitor4.sizes[-10:]))
+print("Process5: Last 10 queue sizes: {}".format(Monitor5.sizes[-10:]))
+
+print("Sink: Last 10 arrival times: " + ", ".join(["{:.3f}".format(x) for x in Sink.arrivals[-10:]])) # 모든 공정을 거친 assembly가 최종 노드에 도착하는 시간 간격 - TH 계산 가능
+print("Sink: average lead time = {:.3f}".format(sum(Sink.waits)/len(Sink.waits))) # 모든 parts들의 리드타임의 평균
+
+print("sent {}".format(Source.parts_sent))
+print("received: {}, dropped {} of {}".format(Process1.parts_rec, Process1.parts_drop, Process1.name))
+print("received: {}, dropped {} of {}".format(Process2.parts_rec, Process2.parts_drop, Process2.name))
+print("received: {}, dropped {} of {}".format(Process3.parts_rec, Process3.parts_drop, Process3.name))
+print("received: {}, dropped {} of {}".format(Process4.parts_rec, Process4.parts_drop, Process4.name))
+print("received: {}, dropped {} of {}".format(Process5.parts_rec, Process5.parts_drop, Process5.name))
+
+print("average system occupancy of Process1: {:.3f}".format(float(sum(Monitor1.sizes))/len(Monitor1.sizes)))
+print("average system occupancy of Process2: {:.3f}".format(float(sum(Monitor2.sizes))/len(Monitor2.sizes)))
+print("average system occupancy of Process3: {:.3f}".format(float(sum(Monitor3.sizes))/len(Monitor3.sizes)))
+print("average system occupancy of Process4: {:.3f}".format(float(sum(Monitor4.sizes))/len(Monitor4.sizes)))
+print("average system occupancy of Process5: {:.3f}".format(float(sum(Monitor5.sizes))/len(Monitor5.sizes)))
+
+print("utilization of Process1: {:2.2f}".format(Process1.working_time/RUN_TIME))
+print("utilization of Process2: {:2.2f}".format(Process2.working_time/RUN_TIME))
+print("utilization of Process3: {:2.2f}".format(Process3.working_time/RUN_TIME))
+print("utilization of Process4: {:2.2f}".format(Process4.working_time/RUN_TIME))
+print("utilization of Process5: {:2.2f}".format(Process5.working_time/RUN_TIME))

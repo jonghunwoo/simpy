@@ -1,18 +1,81 @@
 <component name="ProjectDictionaryState">
   <dictionary name="woojonghun">
     <words>
+      <w>action</w>
       <w>adist</w>
+      <w>after</w>
+      <w>assembly</w>
+      <w>assigned</w>
       <w>assy</w>
+      <w>attributes</w>
+      <w>based</w>
       <w>brancher</w>
+      <w>certain</w>
+      <w>components</w>
+      <w>connection</w>
+      <w>create</w>
+      <w>dataframe</w>
+      <w>default</w>
+      <w>defined</w>
+      <w>delay</w>
+      <w>dist</w>
+      <w>each</w>
+      <w>environment</w>
+      <w>example</w>
+      <w>finish</w>
+      <w>flow</w>
+      <w>function</w>
       <w>functools</w>
+      <w>generation</w>
+      <w>generator</w>
+      <w>generators</w>
+      <w>infinite</w>
+      <w>initial</w>
       <w>jobshop</w>
+      <w>jonathan</w>
       <w>length를</w>
+      <w>line</w>
+      <w>loop</w>
+      <w>main</w>
+      <w>model</w>
+      <w>monitor</w>
+      <w>next</w>
+      <w>number</w>
+      <w>original</w>
+      <w>over</w>
+      <w>packet</w>
+      <w>parameter</w>
+      <w>parameters</w>
+      <w>parts</w>
+      <w>passed</w>
+      <w>port</w>
       <w>probs</w>
       <w>proc</w>
+      <w>process</w>
+      <w>product</w>
+      <w>purpose</w>
       <w>qlimit</w>
       <w>qlimit보다</w>
       <w>samp</w>
+      <w>self</w>
+      <w>sent</w>
       <w>simpy</w>
+      <w>simulate</w>
+      <w>simulation</w>
+      <w>simulations</w>
+      <w>sink</w>
+      <w>source</w>
+      <w>starts</w>
+      <w>status</w>
+      <w>stops</w>
+      <w>time</w>
+      <w>track</w>
+      <w>transmission</w>
+      <w>used</w>
+      <w>using</w>
+      <w>wait</w>
+      <w>weight</w>
+      <w>with</w>
     </words>
   </dictionary>
 </component>

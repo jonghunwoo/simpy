@@ -47,7 +47,7 @@ class Part(object):
     def __repr__(self):
         return "id: {}, src: {}, time: {}, size: {}".format(self.id, self.src, self.time, self.size)
 
-class Part_with_df(object):
+class DataframePart(object):
     """ A very simple class that represents a packet.
         This packet will run through a queue at a switch output port.
         We use a float to represent the size of the packet in bytes so that
@@ -114,6 +114,7 @@ class Source(object):
         while self.env.now < self.finish:
             # wait for next transmission
             adist = self.adist()
+            print("adist :", adist)
             yield self.env.timeout(adist)
             self.parts_sent += 1
             sdist = self.sdist()
@@ -130,6 +131,8 @@ class Source(object):
                     #timeout 0.1로 사용한 경우 loop 약 50000번, 수정한 경우 loop 횟수 약 1500번
                     #print(f'num source loop: {COUNT}')
                     #후공정과 동일한 시간에 event를 만들면 후공정보다 먼저 실행되는 경우가 있어 미소값을 더해줌
+                    print("next_run :", self.out.next_run)
+                    print("env.now :", self.env.now)
                     yield self.env.timeout(self.out.next_run - self.env.now + 1e-6)
                     #queue에서 가장 빠른 이벤트를 가져오는 경우 모든 이벤트를 체크하므로 loop 횟수가 많아지므로 비효율적임
                     #yield self.env.timeout(self.env._queue[0][0] - self.env.now)
@@ -139,7 +142,7 @@ class Source(object):
             self.out.put(p)
 
 
-class Source_with_dataframe(object):
+class DataframeSource(object):
 
     def __init__(self, env, id, adist, df, initial_delay=0, finish=float("inf"), flow_id=0):
         self.id = id
@@ -162,11 +165,10 @@ class Source_with_dataframe(object):
             self.parts_sent += 1
 
             # create product with assigned attributes
-            p = Part_with_df(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
-            print(p)
-
+            p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
+            print(p.df[0])
             if (self.out.__class__.__name__ == 'Process'):
-                while len(self.out.store.items) >= self.out.qlimit - 1:
+                while len(self.out.store.items) >= self.out.qlimit:
                     #print('start loop at', self.__class__.__name__, self.env.now)
                     #source에서 loop가 실행되는 횟수
                     global COUNT
@@ -174,6 +176,8 @@ class Source_with_dataframe(object):
                     #timeout 0.1로 사용한 경우 loop 약 50000번, 수정한 경우 loop 횟수 약 1500번
                     #print(f'num source loop: {COUNT}')
                     #후공정과 동일한 시간에 event를 만들면 후공정보다 먼저 실행되는 경우가 있어 미소값을 더해줌
+                    print("next_run :", self.out.next_run)
+                    print("env.now :", self.env.now)
                     yield self.env.timeout(self.out.next_run - self.env.now + 1e-6)
                     #queue에서 가장 빠른 이벤트를 가져오는 경우 모든 이벤트를 체크하므로 loop 횟수가 많아지므로 비효율적임
                     #yield self.env.timeout(self.env._queue[0][0] - self.env.now)
@@ -181,6 +185,11 @@ class Source_with_dataframe(object):
                     #print('end loop')
 
             self.out.put(p)
+
+            print('self.df.count', len(self.df))
+            print('self.parts_sent', self.parts_sent)
+            if len(self.df) == self.parts_sent+1:
+                break
 
 
 class Sink(object):
@@ -231,7 +240,7 @@ class Sink(object):
                     self.arrivals.append(now - self.last_arrival)
                 self.last_arrival = now
             self.parts_rec += 1 # Sink에 도착한 parts 수 저장
-            self.bytes_rec += pkt.size
+            #self.bytes_rec += pkt.size
             if self.debug:
                 print(pkt)
 
@@ -274,7 +283,9 @@ class Process(object):
         while True:
             msg = (yield self.store.get()) # id: 33, src: Source, time: 83, size: 1
             self.busy = 1
-            proc_time = self.rate()
+            #print("cycle time of Process", self.name[-1:], " is ", msg.df[int(self.name[-1:])])
+            #proc_time = self.rate()
+            proc_time = msg.df[int(self.name[-1:])]
 
             self.start_time = self.env.now
             self.next_run = self.env.now + proc_time
@@ -283,7 +294,7 @@ class Process(object):
 
             if(self.out.__class__.__name__ == 'Process'):
                 #print(self.name, 'qlimit :', self.qlimit, 'queue length :', len(self.store.items))
-                while len(self.out.store.items) >= self.out.qlimit - 1:
+                while len(self.out.store.items) >= self.out.qlimit:
                     #print('start loop at', self.name, self.env.now)
                     #process에서 loop가 실행되는 횟수
                     global COUNT2
@@ -304,14 +315,14 @@ class Process(object):
                 print(msg)
 
     def put(self, part):
-        print(self.name, "'s put triggered")
+        #print(self.name, "'s put triggered")
         self.parts_rec += 1
 
         if self.qlimit is None:
-            print(self.name, ': infinite qlimit')
+            #print(self.name, ': infinite qlimit')
             return self.store.put(part)
-        elif len(self.store.items) >= self.qlimit - 1:
-            print('dropped at', self.name)
+        elif len(self.store.items) >= self.qlimit:
+            #print('dropped at', self.name)
             self.parts_drop += 1
 
             ### Should be added waiting function until self.qlimit is decreased
@@ -328,7 +339,7 @@ class Process(object):
             #return self.store.put(part)
 
         else:
-            print(self.name, ': accept transfer')
+            #print(self.name, ': accept transfer')
             return self.store.put(part)
 
 class Monitor(object):
