@@ -6,9 +6,6 @@ import random
 import functools
 import simpy
 from SimComponents_rev import Source, Sink, Process, Monitor, RandomBrancher
-#import numpy as np
-#import matplotlib.pyplot as plt
-#from keras.models import load_model
 
 if __name__ == '__main__':
 
@@ -33,7 +30,7 @@ if __name__ == '__main__':
     proc_time2 = functools.partial(random.normalvariate,ct2,var2)
     proc_time3 = functools.partial(random.normalvariate,ct3,var3)
 
-    RUN_TIME = 10000
+    RUN_TIME = 500
 
     # Create the SimPy environment
     env = simpy.Environment()

@@ -4,7 +4,6 @@ Copyright 2019 Dr. Jonathan Woo
 """
 import random
 import functools
-import numpy as np
 import simpy
 from SimComponents_rev import Source, Sink, Process, Monitor, RandomBrancher
 
@@ -22,7 +21,7 @@ if __name__ == '__main__':
     proc_time4 = functools.partial(random.normalvariate,5,1)
     proc_time5 = functools.partial(random.normalvariate,5,1)
 
-    RUN_TIME = 10000
+    RUN_TIME = 500
 
     # Create the SimPy environment
     env = simpy.Environment()
