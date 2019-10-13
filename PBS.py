@@ -47,7 +47,7 @@ df3 = data3[["product", "plate_weld","saw_front","turn_over", "saw_back", "longi
 """ Simulation
     Dataframe with product data is passed to Source.
     Then, source create product with interval time of defined adist function.
-    For this purpose, Source_with_dataframe is defined based on original Source.
+    For this purpose, DataframeSource is defined based on original Source.
 """
 
 random.seed(42)
