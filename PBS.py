@@ -7,6 +7,7 @@ import pandas as pd
 import functools
 import simpy
 from SimComponents_rev import Source, DataframeSource, Sink, Process, Monitor, RandomBrancher
+import matplotlib.pyplot as plt
 
 """ Data loading
     request raw excel file from github of jonghunwoo
@@ -124,3 +125,26 @@ print("utilization of Process2: {:2.2f}".format(Process2.working_time/RUN_TIME))
 print("utilization of Process3: {:2.2f}".format(Process3.working_time/RUN_TIME))
 print("utilization of Process4: {:2.2f}".format(Process4.working_time/RUN_TIME))
 print("utilization of Process5: {:2.2f}".format(Process5.working_time/RUN_TIME))
+
+fig, axis = plt.subplots()
+axis.hist(Sink.waits, bins=100, density=True)
+axis.set_title("Histogram for waiting times")
+axis.set_xlabel("time")
+axis.set_ylabel("normalized frequency of occurrence")
+plt.show()
+
+fig, axis = plt.subplots()
+axis.hist(Sink.arrivals, bins=100, density=True)
+axis.set_title("Histogram for Sink Interarrival times")
+axis.set_xlabel("time")
+axis.set_ylabel("normalized frequency of occurrence")
+
+plt.show()
+
+fig, axis = plt.subplots()
+axis.hist(Monitor1.sizes, bins=10, density=True)
+axis.set_title("Histogram for Process1 WIP")
+axis.set_xlabel("time")
+axis.set_ylabel("normalized frequency of occurrence")
+
+plt.show()
