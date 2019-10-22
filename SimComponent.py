@@ -84,6 +84,7 @@ class PacketGenerator(object):
             yield self.env.timeout(self.adist())
             self.packets_sent += 1
             p = Packet(self.env.now, self.sdist(), self.packets_sent, src=self.id, flow_id=self.flow_id)
+
             self.out.put(p)
 
 
