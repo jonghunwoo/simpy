@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev import Source, DataframeSource, Sink, Process, Monitor, RandomBrancher
+from SimComponents_rev2 import Source, DataframeSource, Sink, Process, Monitor
 import matplotlib.pyplot as plt
 
 """ Data loading
@@ -125,6 +125,8 @@ print("utilization of Process2: {:2.2f}".format(Process2.working_time/RUN_TIME))
 print("utilization of Process3: {:2.2f}".format(Process3.working_time/RUN_TIME))
 print("utilization of Process4: {:2.2f}".format(Process4.working_time/RUN_TIME))
 print("utilization of Process5: {:2.2f}".format(Process5.working_time/RUN_TIME))
+
+Sink.show_chart()
 
 fig, axis = plt.subplots()
 axis.hist(Sink.waits, bins=100, density=True)

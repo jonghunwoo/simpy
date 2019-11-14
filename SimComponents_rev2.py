@@ -140,6 +140,8 @@ class Sink(object):
         fig.show()
 
 
+#def SubProcess():
+
 class Process(object):
 
     def __init__(self, env, name, rate, qlimit=None, limit_bytes=True, debug=False):
@@ -175,6 +177,7 @@ class Process(object):
 
             self.start_time = self.env.now
             yield self.env.timeout(proc_time)
+            #self.env.process(SubProcess)
             self.working_time += self.env.now - self.start_time
 
             if self.out.__class__.__name__ == 'Process':
