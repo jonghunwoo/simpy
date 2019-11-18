@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev2 import Source, DataframeSource, Sink, Process, Monitor
+from SimComponents_rev3 import Source, DataframeSource, Sink, Process, Monitor
 import matplotlib.pyplot as plt
 
 """ Data loading
