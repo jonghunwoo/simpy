@@ -6,18 +6,18 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev import Source, DataframeSource, Sink, Process, Monitor, RandomBrancher
+from SimComponents_rev3 import Source, DataframeSource, Sink, Process, Monitor
 
 """ Data loading
-    request raw excel file from github of jonghunwoo
-    then, change the format from excel to csv
-    Data frame object of product data is generated from csv file
+    1. request raw excel file from github of jonghunwoo
+    2. then, change the format from excel to csv
+    3. Data frame object of product data is generated from csv file
 """
 
 # ./data 폴더에 해당 파일이 없으면 실행
-if not os.path.isfile('./data/OOO.csv'):
-    url = "https://raw.githubusercontent.com/jonghunwoo/public/master/PBS_assy_sequence.xlsx"
-    filename = "./data/OOO.xlsx"
+if not os.path.isfile('./data/spool_data_for_simulation.csv'):
+    url = "https://raw.githubusercontent.com/jonghunwoo/public/master/spool_data_for_simulation.xlsx"
+    filename = "./data/spool_data_for_simulation.xlsx"
     urllib.request.urlretrieve(url, filename)
 
     def csv_from_excel(excel_name, file_name, sheet_name):
@@ -31,13 +31,14 @@ if not os.path.isfile('./data/OOO.csv'):
 
         csv_file.close()
 
-    csv_from_excel('./data/OOO.xlsx', './data/OOO.csv', 'worksheet')
+    csv_from_excel('./data/spool_data_for_simulation.xlsx', './data/spool_data_for_simulation.csv', 'Sheet1')
 
 # csv 파일 pandas 객체 생성
-data = pd.read_csv('./data/OOO.csv')
+data = pd.read_csv('./data/spool_data_for_simulation.csv')
 
+df1 = data[["NO_SPOOL", "DIA", "Length", "Weight", "MemberCount", "JointCount", "Material", "제작협력사", "도장협력사", "Actual_makingLT", "Predicted_makingLT", "Actual_paintingLT", "Predicted_paintingLT"]]
 
-df1 = data[["OOO", "OOO", "OOO", "OOO", "OOO", "OOO"]]
+print(df1.head())
 
 """ Simulation
     Dataframe with product data is passed to Source.
@@ -64,3 +65,5 @@ Process4 = Process(env, 'Process4', proc_time, qlimit=1, limit_bytes=False)
 Process5 = Process(env, 'Process5', proc_time, qlimit=1, limit_bytes=False)
 Process6 = Process(env, 'Process6', proc_time, qlimit=1, limit_bytes=False)
 Process7 = Process(env, 'Process7', proc_time, qlimit=1, limit_bytes=False)
+
+"""
