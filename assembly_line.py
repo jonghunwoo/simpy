@@ -5,7 +5,7 @@ Copyright 2019 Dr. Jonathan Woo
 import random
 import functools
 import simpy
-from SimComponents_rev import Source, Sink, Process, Monitor, RandomBrancher
+from SimComponents_rev3 import Source, Sink, Process, Monitor
 
 if __name__ == '__main__':
 

@@ -36,9 +36,9 @@ if not os.path.isfile('./data/spool_data_for_simulation.csv'):
 # csv 파일 pandas 객체 생성
 data = pd.read_csv('./data/spool_data_for_simulation.csv')
 
-df1 = data[["NO_SPOOL", "DIA", "Length", "Weight", "MemberCount", "JointCount", "Material", "제작협력사", "도장협력사", "Actual_makingLT", "Predicted_makingLT", "Actual_paintingLT", "Predicted_paintingLT"]]
+df = data[["NO_SPOOL", "DIA", "Length", "Weight", "MemberCount", "JointCount", "Material", "제작협력사", "도장협력사", "Actual_makingLT", "Predicted_makingLT", "Actual_paintingLT", "Predicted_paintingLT"]]
 
-print(df1.head())
+print(df.head())
 
 """ Simulation
     Dataframe with product data is passed to Source.
@@ -47,7 +47,7 @@ print(df1.head())
 """
 
 random.seed(42)
-adist = functools.partial(random.randrange,3,7) # Inter arrival time
+adist = functools.partial(random.randrange,3,7) # Inter-arrival time
 samp_dist = functools.partial(random.expovariate, 1) # need to be checked
 proc_time = functools.partial(random.normalvariate,5,1) # sample process working time
 
@@ -55,7 +55,7 @@ RUN_TIME = 500
 
 env = simpy.Environment()
 
-Source = DataframeSource(env, "Source", adist, df1)
+Source = DataframeSource(env, "Source", adist, df)
 Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
 
 Process1 = Process(env, 'Process1', proc_time, qlimit=1, limit_bytes=False)
@@ -65,5 +65,3 @@ Process4 = Process(env, 'Process4', proc_time, qlimit=1, limit_bytes=False)
 Process5 = Process(env, 'Process5', proc_time, qlimit=1, limit_bytes=False)
 Process6 = Process(env, 'Process6', proc_time, qlimit=1, limit_bytes=False)
 Process7 = Process(env, 'Process7', proc_time, qlimit=1, limit_bytes=False)
-
-"""
