@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev3 import Source, DataframeSource, Sink, Process, Monitor
+from SimComponents_rev4 import Source, DataframeSource, Sink, Process, Monitor
 import matplotlib.pyplot as plt
 
 """ Data loading
@@ -60,16 +60,17 @@ RUN_TIME = 500
 
 env = simpy.Environment()
 
-Source = DataframeSource(env, "Source", adist, df1)
+Source = DataframeSource(env, "Source", adist, df2)
 Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
 
-Process1 = Process(env, 'Process1', proc_time, qlimit=1, limit_bytes=False)
-Process2 = Process(env, 'Process2', proc_time, qlimit=1, limit_bytes=False)
-Process3 = Process(env, 'Process3', proc_time, qlimit=1, limit_bytes=False)
-Process4 = Process(env, 'Process4', proc_time, qlimit=1, limit_bytes=False)
-Process5 = Process(env, 'Process5', proc_time, qlimit=1, limit_bytes=False)
-Process6 = Process(env, 'Process6', proc_time, qlimit=1, limit_bytes=False)
-Process7 = Process(env, 'Process7', proc_time, qlimit=1, limit_bytes=False)
+#Process 객체 생성할 때 subprocess_num 추가
+Process1 = Process(env, 'Process1', proc_time, 1, qlimit=1, limit_bytes=False)
+Process2 = Process(env, 'Process2', proc_time, 1, qlimit=1, limit_bytes=False)
+Process3 = Process(env, 'Process3', proc_time, 1, qlimit=1, limit_bytes=False)
+Process4 = Process(env, 'Process4', proc_time, 1, qlimit=1, limit_bytes=False)
+Process5 = Process(env, 'Process5', proc_time, 1, qlimit=1, limit_bytes=False)
+Process6 = Process(env, 'Process6', proc_time, 1, qlimit=1, limit_bytes=False)
+Process7 = Process(env, 'Process7', proc_time, 1, qlimit=1, limit_bytes=False)
 
 # Using a PortMonitor to track each status over time
 Monitor1 = Monitor(env, Process1, samp_dist)
@@ -98,6 +99,35 @@ print("Results of simulation")
 print('#'*80)
 print("Lead time of Last 10 Parts: " + ", ".join(["{:.3f}".format(x) for x in Sink.waits[-10:]]))
 
+
+
+# 총 리드타임 - 마지막 part가 Sink에 도달하는 시간
+print("Total Lead Time : ", Sink.last_arrival)
+
+# 공정별 대기시간의 합
+names = ["Process1", "Process2", "Process3", "Process4", "Process5", "Process6", "Process7"]
+waiting_time = {}
+for name in names:
+    t = 0
+    for i in range(len(Sink.waiting_list)):
+        t += Sink.waiting_list[i][name + " waiting finish"] - Sink.waiting_list[i][name + " waiting start"]
+    waiting_time[name] = t
+
+print("total waiting time of Process1 : ",waiting_time["Process1"])
+print("total waiting time of Process2 : ",waiting_time["Process2"])
+print("total waiting time of Process3 : ",waiting_time["Process3"])
+print("total waiting time of Process4 : ",waiting_time["Process4"])
+print("total waiting time of Process5 : ",waiting_time["Process5"])
+
+#Sink.show_chart()
+
+print("utilization of Process1: {:2.2f}".format(Process1.working_time/Sink.last_arrival))
+print("utilization of Process2: {:2.2f}".format(Process2.working_time/Sink.last_arrival))
+print("utilization of Process3: {:2.2f}".format(Process3.working_time/Sink.last_arrival))
+print("utilization of Process4: {:2.2f}".format(Process4.working_time/Sink.last_arrival))
+print("utilization of Process5: {:2.2f}".format(Process5.working_time/Sink.last_arrival))
+
+"""
 print("Process1: Last 10 queue sizes: {}".format(Monitor1.sizes[-10:]))
 print("Process2: Last 10 queue sizes: {}".format(Monitor2.sizes[-10:]))
 print("Process3: Last 10 queue sizes: {}".format(Monitor3.sizes[-10:]))
@@ -107,26 +137,11 @@ print("Process5: Last 10 queue sizes: {}".format(Monitor5.sizes[-10:]))
 print("Sink: Last 10 arrival times: " + ", ".join(["{:.3f}".format(x) for x in Sink.arrivals[-10:]])) # 모든 공정을 거친 assembly가 최종 노드에 도착하는 시간 간격 - TH 계산 가능
 print("Sink: average lead time = {:.3f}".format(sum(Sink.waits)/len(Sink.waits))) # 모든 parts들의 리드타임의 평균
 
-print("sent {}".format(Source.parts_sent))
-print("received: {}, dropped {} of {}".format(Process1.parts_rec, Process1.parts_drop, Process1.name))
-print("received: {}, dropped {} of {}".format(Process2.parts_rec, Process2.parts_drop, Process2.name))
-print("received: {}, dropped {} of {}".format(Process3.parts_rec, Process3.parts_drop, Process3.name))
-print("received: {}, dropped {} of {}".format(Process4.parts_rec, Process4.parts_drop, Process4.name))
-print("received: {}, dropped {} of {}".format(Process5.parts_rec, Process5.parts_drop, Process5.name))
-
 print("average system occupancy of Process1: {:.3f}".format(float(sum(Monitor1.sizes))/len(Monitor1.sizes)))
 print("average system occupancy of Process2: {:.3f}".format(float(sum(Monitor2.sizes))/len(Monitor2.sizes)))
 print("average system occupancy of Process3: {:.3f}".format(float(sum(Monitor3.sizes))/len(Monitor3.sizes)))
 print("average system occupancy of Process4: {:.3f}".format(float(sum(Monitor4.sizes))/len(Monitor4.sizes)))
 print("average system occupancy of Process5: {:.3f}".format(float(sum(Monitor5.sizes))/len(Monitor5.sizes)))
-
-print("utilization of Process1: {:2.2f}".format(Process1.working_time/RUN_TIME))
-print("utilization of Process2: {:2.2f}".format(Process2.working_time/RUN_TIME))
-print("utilization of Process3: {:2.2f}".format(Process3.working_time/RUN_TIME))
-print("utilization of Process4: {:2.2f}".format(Process4.working_time/RUN_TIME))
-print("utilization of Process5: {:2.2f}".format(Process5.working_time/RUN_TIME))
-
-Sink.show_chart()
 
 fig, axis = plt.subplots()
 axis.hist(Sink.waits, bins=100, density=True)
@@ -150,3 +165,4 @@ axis.set_xlabel("time")
 axis.set_ylabel("normalized frequency of occurrence")
 
 plt.show()
+"""

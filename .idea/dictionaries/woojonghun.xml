@@ -10,11 +10,14 @@
       <w>attributes</w>
       <w>based</w>
       <w>brancher</w>
+      <w>busy</w>
+      <w>bytes</w>
       <w>certain</w>
       <w>components</w>
       <w>connection</w>
       <w>create</w>
       <w>dataframe</w>
+      <w>debug</w>
       <w>default</w>
       <w>defined</w>
       <w>delay</w>
@@ -32,14 +35,17 @@
       <w>infinite</w>
       <w>initial</w>
       <w>interarrival</w>
+      <w>inventory</w>
       <w>jobshop</w>
       <w>jonathan</w>
       <w>length를</w>
+      <w>limit</w>
       <w>line</w>
       <w>loop</w>
       <w>main</w>
       <w>model</w>
       <w>monitor</w>
+      <w>name</w>
       <w>next</w>
       <w>number</w>
       <w>original</w>
@@ -57,6 +63,7 @@
       <w>purpose</w>
       <w>qlimit</w>
       <w>qlimit보다</w>
+      <w>rate</w>
       <w>samp</w>
       <w>self</w>
       <w>sent</w>
@@ -69,6 +76,8 @@
       <w>starts</w>
       <w>status</w>
       <w>stops</w>
+      <w>store</w>
+      <w>subrun</w>
       <w>time</w>
       <w>track</w>
       <w>transmission</w>
