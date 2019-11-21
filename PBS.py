@@ -100,7 +100,6 @@ print('#'*80)
 print("Lead time of Last 10 Parts: " + ", ".join(["{:.3f}".format(x) for x in Sink.waits[-10:]]))
 
 
-
 # 총 리드타임 - 마지막 part가 Sink에 도달하는 시간
 print("Total Lead Time : ", Sink.last_arrival)
 
