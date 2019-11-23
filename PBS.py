@@ -6,11 +6,11 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev4 import Source, DataframeSource, Sink, Process, Monitor
+from SimComponents_for_assembly_line import Source, DataframeSource, Sink, Process, Monitor
 import matplotlib.pyplot as plt
 
 """ Data loading
-    request raw excel file from github of jonghunwoo
+    request excel file from github of jonghunwoo
     then, change the format from excel to csv
     Data frame object of product data is generated from csv file
 """

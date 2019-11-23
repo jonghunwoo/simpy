@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_rev3 import Source, DataframeSource, Sink, Process, Monitor
+from SimComponents_rev5 import Source, DataframeSource, Sink, Process, Monitor
 
 """ Data loading
     1. request raw excel file from github of jonghunwoo

@@ -182,6 +182,8 @@ class Process(object):
                 yield self.wait2
 
     def subrun(self, msg):
+
+        msg
         self.start_time = self.env.now
         proc_time = msg.df[int(self.name[-1:])]
         yield self.env.timeout(proc_time)
@@ -243,34 +245,3 @@ class Monitor(object):
             self.sizes.append(total)
 
 
-class RandomBrancher(object):
-    """ A demultiplexing element that chooses the output port at random.
-
-        Contains a list of output ports of the same length as the probability list
-        in the constructor.  Use these to connect to other network elements.
-
-        Parameters
-        ----------
-        env : simpy.Environment
-        probs : List
-            list of probabilities for the corresponding output ports
-    """
-    def __init__(self, env, probs):
-        self.env = env
-
-        self.probs = probs
-        self.ranges = [sum(probs[0:n+1]) for n in range(len(probs))]  # Partial sums of probs
-        if self.ranges[-1] - 1.0 > 1.0e-6:
-            raise Exception("Probabilities must sum to 1.0")
-        self.n_ports = len(self.probs)
-        self.outs = [None for i in range(self.n_ports)]  # Create and initialize output ports
-        self.parts_rec = 0
-
-    def put(self, pkt):
-        self.parts_rec += 1
-        rand = random.random()
-        for i in range(self.n_ports):
-            if rand < self.ranges[i]:
-                if self.outs[i]:  # A check to make sure the output has been assigned before we put to it
-                    self.outs[i].put(pkt)
-                return
