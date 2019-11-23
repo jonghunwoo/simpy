@@ -38,7 +38,7 @@ data = pd.read_csv('./data/spool_data_for_simulation.csv')
 
 df = data[["NO_SPOOL", "DIA", "Length", "Weight", "MemberCount", "JointCount", "Material", "제작협력사", "도장협력사", "Actual_makingLT", "Predicted_makingLT", "Actual_paintingLT", "Predicted_paintingLT"]]
 
-print(df.head())
+df.rename(columns={'NO_SPOOL': 'part_no', "제작협력사": 'Proc1', '도장협력사': 'Proc2', 'Actual_makingLT': 'CT1', 'Predicted_makingLT': 'CT2', 'Actual_paintingLT': 'CT3', 'Predicted_paintingLT': 'CT4'}, inplace=True)
 
 """ Simulation
     Dataframe with product data is passed to Source.
@@ -55,13 +55,86 @@ RUN_TIME = 500
 
 env = simpy.Environment()
 
-Source = DataframeSource(env, "Source", adist, df)
+Source = DataframeSource(env, "Source", adist, df, 7)
 Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
 
-Process1 = Process(env, 'Process1', proc_time, qlimit=1, limit_bytes=False)
-Process2 = Process(env, 'Process2', proc_time, qlimit=1, limit_bytes=False)
-Process3 = Process(env, 'Process3', proc_time, qlimit=1, limit_bytes=False)
-Process4 = Process(env, 'Process4', proc_time, qlimit=1, limit_bytes=False)
-Process5 = Process(env, 'Process5', proc_time, qlimit=1, limit_bytes=False)
-Process6 = Process(env, 'Process6', proc_time, qlimit=1, limit_bytes=False)
-Process7 = Process(env, 'Process7', proc_time, qlimit=1, limit_bytes=False)
+Proc1_1 = Process(env, "(주)성광테크", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+Proc1_2 = Process(env, "건일산업(주)", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+Proc1_3 = Process(env, "부흥", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+Proc1_4 = Process(env, "삼성중공업(주)거제", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+Proc1_5 = Process(env, "성일", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+Proc1_6 = Process(env, "성일SIM함안공장", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+Proc1_7 = Process(env, "해승케이피", proc_time, 10, 7, qlimit=10000, limit_bytes=False)
+
+Proc2_1 = Process(env, "(주)성광테크", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+Proc2_2 = Process(env, "건일산업(주)", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+Proc2_3 = Process(env, "삼녹", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+Proc2_4 = Process(env, "성도", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+Proc2_5 = Process(env, "성일SIM함안공장", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+Proc2_6 = Process(env, "하이에", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+Proc2_7 = Process(env, "해승케이피", proc_time, 10, 1, qlimit=10000, limit_bytes=False)
+
+Source.outs[0] = Proc1_1
+Source.outs[1] = Proc1_2
+Source.outs[2] = Proc1_3
+Source.outs[3] = Proc1_4
+Source.outs[4] = Proc1_5
+Source.outs[5] = Proc1_6
+Source.outs[6] = Proc1_7
+
+Proc1_1.outs[0] = Proc2_1
+Proc1_1.outs[1] = Proc2_2
+Proc1_1.outs[2] = Proc2_3
+Proc1_1.outs[3] = Proc2_4
+Proc1_1.outs[4] = Proc2_5
+Proc1_1.outs[5] = Proc2_6
+Proc1_1.outs[6] = Proc2_7
+
+Proc1_2.outs[0] = Proc2_1
+Proc1_2.outs[1] = Proc2_2
+Proc1_2.outs[2] = Proc2_3
+Proc1_2.outs[3] = Proc2_4
+Proc1_2.outs[4] = Proc2_5
+Proc1_2.outs[5] = Proc2_6
+Proc1_2.outs[6] = Proc2_7
+
+Proc1_3.outs[0] = Proc2_1
+Proc1_3.outs[1] = Proc2_2
+Proc1_3.outs[2] = Proc2_3
+Proc1_3.outs[3] = Proc2_4
+Proc1_3.outs[4] = Proc2_5
+Proc1_3.outs[5] = Proc2_6
+Proc1_3.outs[6] = Proc2_7
+
+Proc1_4.outs[0] = Proc2_1
+Proc1_4.outs[1] = Proc2_2
+Proc1_4.outs[2] = Proc2_3
+Proc1_4.outs[3] = Proc2_4
+Proc1_4.outs[4] = Proc2_5
+Proc1_4.outs[5] = Proc2_6
+Proc1_4.outs[6] = Proc2_7
+
+Proc1_5.outs[0] = Proc2_1
+Proc1_5.outs[1] = Proc2_2
+Proc1_5.outs[2] = Proc2_3
+Proc1_5.outs[3] = Proc2_4
+Proc1_5.outs[4] = Proc2_5
+Proc1_5.outs[5] = Proc2_6
+Proc1_5.outs[6] = Proc2_7
+
+Proc1_6.outs[0] = Proc2_1
+Proc1_6.outs[1] = Proc2_2
+Proc1_6.outs[2] = Proc2_3
+Proc1_6.outs[3] = Proc2_4
+Proc1_6.outs[4] = Proc2_5
+Proc1_6.outs[5] = Proc2_6
+Proc1_6.outs[6] = Proc2_7
+
+Proc1_7.outs[0] = Proc2_1
+Proc1_7.outs[1] = Proc2_2
+Proc1_7.outs[2] = Proc2_3
+Proc1_7.outs[3] = Proc2_4
+Proc1_7.outs[4] = Proc2_5
+Proc1_7.outs[5] = Proc2_6
+Proc1_7.outs[6] = Proc2_7
+

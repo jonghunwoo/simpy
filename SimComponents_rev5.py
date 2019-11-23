@@ -70,33 +70,34 @@ class Source(object):
 
 class DataframeSource(object):
 
-    def __init__(self, env, id, adist, df, initial_delay=0, finish=float("inf"), flow_id=0):
+    def __init__(self, env, id, adist, df, routing_num, initial_delay=0, finish=float("inf"), flow_id=0):
         self.id = id
         self.env = env
         self.adist = adist
         self.df = df
         self.initial_delay = initial_delay
         self.finish = finish
-        self.out = None
+        self.routing_num = routing_num
+        self.outs = [None for i in range(self.routing_num)]
         self.parts_sent = 0
         self.action = env.process(self.run())
         self.flow_id = flow_id
 
     def run(self):
         yield self.env.timeout(self.initial_delay)
+
         while self.env.now < self.finish:
 
-            if self.out.__class__.__name__ == 'Process':
-                if self.out.inventory + self.out.busy >= self.out.qlimit:
+            if self.outs[0].__class__.__name__ == 'Process':
+                if self.outs[0].inventory + self.outs[0].busy >= self.outs[0].qlimit:
                     stop = self.env.event()
-                    self.out.wait1.append(stop)
+                    self.outs[0].wait1.append(stop)
                     yield stop
 
             self.parts_sent += 1
-            p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id,
-                              flow_id=self.flow_id)
+            p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
 
-            self.out.put(p)
+            self.outs[0].put(p)
 
             #print('self.df.count', len(self.df))
             #print('self.parts_sent', self.parts_sent)
@@ -168,8 +169,8 @@ class Process(object):
         self.busy = 0
         self.action = env.process(self.run())
         self.working_time = 0
-        self.outs = []
         self.routing_num = routing_num
+        self.outs = [None for i in range(self.routing_num)]
 
     def run(self):
         while True:
