@@ -88,16 +88,32 @@ class DataframeSource(object):
 
         while self.env.now < self.finish:
 
-            if self.outs[0].__class__.__name__ == 'Process':
-                if self.outs[0].inventory + self.outs[0].busy >= self.outs[0].qlimit:
+            p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
+
+            if p.df["proc1"] == "(주)성광테크" :
+                self.routing_num = 0
+            if p.df["proc1"] == "건일산업(주)" :
+                self.routing_num = 1
+            if p.df["proc1"] == "부" :
+                self.routing_num = 2
+            if p.df["proc1"] == "삼성중공업(주)거제" :
+                self.routing_num = 3
+            if p.df["proc1"] == "성일" :
+                self.routing_num = 4
+            if p.df["proc1"] == "성일SIM함안공장" :
+                self.routing_num = 5
+            if p.df["proc1"] == "해승케이피" :
+                self.routing_num = 6
+
+            if self.outs[self.routing_num].__class__.__name__ == 'Process':
+                if self.outs[self.routing_num].inventory + self.outs[self.routing_num].busy >= self.outs[self.routing_num].qlimit:
                     stop = self.env.event()
-                    self.outs[0].wait1.append(stop)
+                    self.outs[self.routing_num].wait1.append(stop)
                     yield stop
 
             self.parts_sent += 1
-            p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
 
-            self.outs[0].put(p)
+            self.outs[self.routing_num].put(p)
 
             #print('self.df.count', len(self.df))
             #print('self.parts_sent', self.parts_sent)
@@ -184,8 +200,8 @@ class Process(object):
 
     def subrun(self, msg):
 
-        msg
         self.start_time = self.env.now
+        self.name
         proc_time = msg.df[int(self.name[-1:])]
         yield self.env.timeout(proc_time)
         self.working_time += self.env.now - self.start_time

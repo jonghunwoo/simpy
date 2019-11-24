@@ -38,7 +38,9 @@ data = pd.read_csv('./data/spool_data_for_simulation.csv')
 
 df = data[["NO_SPOOL", "DIA", "Length", "Weight", "MemberCount", "JointCount", "Material", "제작협력사", "도장협력사", "Actual_makingLT", "Predicted_makingLT", "Actual_paintingLT", "Predicted_paintingLT"]]
 
-df.rename(columns={'NO_SPOOL': 'part_no', "제작협력사": 'Proc1', '도장협력사': 'Proc2', 'Actual_makingLT': 'CT1', 'Predicted_makingLT': 'CT2', 'Actual_paintingLT': 'CT3', 'Predicted_paintingLT': 'CT4'}, inplace=True)
+df.rename(columns={'NO_SPOOL': 'part_no', "제작협력사": 'proc1', '도장협력사': 'proc2', 'Actual_makingLT': 'ct1', 'Predicted_makingLT': 'ct2', 'Actual_paintingLT': 'ct3', 'Predicted_paintingLT': 'ct4'}, inplace=True)
+
+print(df["proc1"])
 
 """ Simulation
     Dataframe with product data is passed to Source.
@@ -51,7 +53,7 @@ adist = functools.partial(random.randrange,3,7) # Inter-arrival time
 samp_dist = functools.partial(random.expovariate, 1) # need to be checked
 proc_time = functools.partial(random.normalvariate,5,1) # sample process working time
 
-RUN_TIME = 500
+RUN_TIME = 10
 
 env = simpy.Environment()
 
@@ -138,3 +140,12 @@ Proc1_7.outs[4] = Proc2_5
 Proc1_7.outs[5] = Proc2_6
 Proc1_7.outs[6] = Proc2_7
 
+Proc2_1.outs[0] = Sink
+Proc2_2.outs[0] = Sink
+Proc2_3.outs[0] = Sink
+Proc2_4.outs[0] = Sink
+Proc2_5.outs[0] = Sink
+Proc2_6.outs[0] = Sink
+Proc2_7.outs[0] = Sink
+
+env.run(until=RUN_TIME)
