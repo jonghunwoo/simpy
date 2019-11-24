@@ -76,6 +76,7 @@ class DataframeSource(object):
         self.adist = adist
         self.df = df
         self.initial_delay = initial_delay
+        self.delay_time = 0
         self.finish = finish
         self.routing_num = routing_num
         self.outs = [None for i in range(self.routing_num)]
@@ -87,8 +88,7 @@ class DataframeSource(object):
         yield self.env.timeout(self.initial_delay)
 
         while self.env.now < self.finish:
-
-            yield self.env.timeout(self.adist())
+            yield self.env.timeout(self.adist()/10)
 
             p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
 
@@ -210,6 +210,9 @@ class Process(object):
         if self.process_kind == "proc2":
             self.proc_time = msg.df["ct2"]
 
+        if self.proc_time == 0:
+            self.proc_time = 0.1
+
         #print("Process {name} cycle time is {time}".format(name=self.name, time=proc_time))
 
         self.start_time = self.env.now
@@ -251,8 +254,7 @@ class Process(object):
 
         self.outs[self.routing_num].put(msg)
         msg.waiting[self.name + " waiting finish"] = self.env.now  # 대기 종료
-        if msg.waiting[self.name + " waiting finish"] - msg.waiting[self.name + " waiting start"]:
-            print(msg.df["part_no"], " is delayed at ", self.name)
+
         self.busy -= 1
         self.wait2.succeed()
         self.wait2 = self.env.event()
