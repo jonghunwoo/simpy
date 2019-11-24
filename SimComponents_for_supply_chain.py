@@ -88,13 +88,15 @@ class DataframeSource(object):
 
         while self.env.now < self.finish:
 
+            yield self.env.timeout(self.adist())
+
             p = DataframePart(self.env.now, self.df.iloc[self.parts_sent], self.parts_sent, src=self.id, flow_id=self.flow_id)
 
             if p.df["proc1"] == "(주)성광테크" :
                 self.routing_num = 0
             if p.df["proc1"] == "건일산업(주)" :
                 self.routing_num = 1
-            if p.df["proc1"] == "부" :
+            if p.df["proc1"] == "부흥" :
                 self.routing_num = 2
             if p.df["proc1"] == "삼성중공업(주)거제" :
                 self.routing_num = 3
@@ -102,8 +104,10 @@ class DataframeSource(object):
                 self.routing_num = 4
             if p.df["proc1"] == "성일SIM함안공장" :
                 self.routing_num = 5
-            if p.df["proc1"] == "해승케이피" :
+            if p.df["proc1"] == "해승케이피피" :
                 self.routing_num = 6
+
+            #print("Part {part_name} sents to {next_process}/{no} at {time}".format(part_name=p.df["part_no"], next_process=p.df["proc1"], no=self.routing_num, time=self.env.now ))
 
             if self.outs[self.routing_num].__class__.__name__ == 'Process':
                 if self.outs[self.routing_num].inventory + self.outs[self.routing_num].busy >= self.outs[self.routing_num].qlimit:
@@ -115,9 +119,8 @@ class DataframeSource(object):
 
             self.outs[self.routing_num].put(p)
 
-            #print('self.df.count', len(self.df))
-            #print('self.parts_sent', self.parts_sent)
             if len(self.df) == self.parts_sent + 1:
+                print("All parts are sent at {time}".format(time=self.env.now))
                 break
 
 
@@ -167,10 +170,12 @@ class Sink(object):
 
 class Process(object):
 
-    def __init__(self, env, name, rate, subprocess_num, routing_num, qlimit=None, limit_bytes=True, debug=False):
+    def __init__(self, env, process_kind, name, rate, subprocess_num, routing_num, qlimit=None, limit_bytes=True, debug=False):
+        self.process_kind = process_kind
         self.name = name
         self.store = simpy.Store(env)
         self.rate = rate
+        self.proc_time = 0
         self.env = env
         self.out = None
         self.subprocess_num = subprocess_num
@@ -200,28 +205,54 @@ class Process(object):
 
     def subrun(self, msg):
 
+        if self.process_kind == "proc1":
+            self.proc_time = msg.df["ct1"]
+        if self.process_kind == "proc2":
+            self.proc_time = msg.df["ct2"]
+
+        #print("Process {name} cycle time is {time}".format(name=self.name, time=proc_time))
+
         self.start_time = self.env.now
-        self.name
-        proc_time = msg.df[int(self.name[-1:])]
-        yield self.env.timeout(proc_time)
+        yield self.env.timeout(self.proc_time)
         self.working_time += self.env.now - self.start_time
 
         msg.waiting[self.name + " waiting start"] = self.env.now  # 대기 시작
 
-        if self.out.__class__.__name__ == 'Process':
+        if self.process_kind == "proc1":
+            if msg.df["proc2"] == "(주)성광테크":
+                self.routing_num = 0
+            if msg.df["proc2"] == "건일산업(주)":
+                self.routing_num = 1
+            if msg.df["proc2"] == "삼녹":
+                self.routing_num = 2
+            if msg.df["proc2"] == "성도":
+                self.routing_num = 3
+            if msg.df["proc2"] == "성일SIM함안공장":
+                self.routing_num = 4
+            if msg.df["proc2"] == "하이에어":
+                self.routing_num = 5
+            if msg.df["proc2"] == "해승케이피피":
+                self.routing_num = 6
+        else:
+            self.routing_num = 0
 
-            # 1. msg의 해당 후행 Process 이름
-            # 2. 연결된 후행 Process 리스트
-            # 1과 2를 비교해서 outs 번호 식별 - self.routing_num
+        #print("Part {part_name} sents to {next_process}/{no} at {time}".format(part_name=msg.df["part_no"], next_process=msg.df["proc2"], no=self.routing_num, time=self.env.now))
 
-            if self.outs[self.routing_num].inventory + self.outs[self.routing_num].busy >= self.out[self.routing_num].qlimit:
+        if self.outs[self.routing_num].__class__.__name__ == 'Process':
+
+            if self.outs[self.routing_num].inventory + self.outs[self.routing_num].busy >= self.outs[self.routing_num].qlimit:
                 stop = self.env.event()
-                self.out.wait1.append(stop)
+                self.outs[self.routing_num].wait1.append(stop)
                 yield stop
 
         msg.data.append((today + timedelta(minutes=self.env.now)).strftime("%Y-%m-%d %H:%M:%S"))
+
+        #print("Current process is {curr_process} and routing number is {routing_num}".format(curr_process=self.process_kind+self.name, routing_num=self.routing_num))
+
         self.outs[self.routing_num].put(msg)
         msg.waiting[self.name + " waiting finish"] = self.env.now  # 대기 종료
+        if msg.waiting[self.name + " waiting finish"] - msg.waiting[self.name + " waiting start"]:
+            print(msg.df["part_no"], " is delayed at ", self.name)
         self.busy -= 1
         self.wait2.succeed()
         self.wait2 = self.env.event()
