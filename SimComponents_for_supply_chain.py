@@ -286,12 +286,13 @@ class Monitor(object):
         self.env = env
         self.dist = dist
         self.sizes = []
+        self.times = []
         self.action = env.process(self.run())
 
     def run(self):
         while True:
             yield self.env.timeout(self.dist())
+            self.times.append(self.env.now)
             total = self.port.inventory + self.port.busy
             self.sizes.append(total)
-
 
