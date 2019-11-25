@@ -3,7 +3,6 @@ from collections import deque
 from datetime import datetime, timedelta
 import plotly
 import plotly.figure_factory as ff
-import random
 
 today = datetime(datetime.now().year, datetime.now().month, datetime.now().day, hour=0, minute=0, second=0)
 
