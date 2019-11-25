@@ -6,7 +6,8 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_for_supply_chain import Source, DataframeSource, Sink, Process, Monitor
+from SimComponents_for_supply_chain import DataframeSource, Sink, Process, Monitor
+import matplotlib.pyplot as plt
 
 """ Data loading
     1. request raw excel file from github of jonghunwoo
@@ -60,7 +61,7 @@ Source = DataframeSource(env, "Source", adist, df, 7)
 Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
 
 Proc1_1 = Process(env, "proc1", "(주)성광테크", proc_time, 5, 7, qlimit=10, limit_bytes=False)
-Proc1_2 = Process(env, "proc1", "건일산업(주)", proc_time, 10, 7, qlimit=10, limit_bytes=False)
+Proc1_2 = Process(env, "proc1", "건일산업(주)", proc_time, 5, 7, qlimit=10, limit_bytes=False)
 Proc1_3 = Process(env, "proc1", "부흥", proc_time, 5, 7, qlimit=10000, limit_bytes=False)
 Proc1_4 = Process(env, "proc1", "삼성중공업(주)거제", proc_time, 10, 7, qlimit=10, limit_bytes=False)
 Proc1_5 = Process(env, "proc1", "성일", proc_time, 5, 7, qlimit=10000, limit_bytes=False)
@@ -184,6 +185,23 @@ print("utilization of Process2_5: {:2.2f}".format(Proc2_5.working_time/Sink.last
 print("utilization of Process2_6: {:2.2f}".format(Proc2_6.working_time/Sink.last_arrival))
 print("utilization of Process2_7: {:2.2f}".format(Proc2_7.working_time/Sink.last_arrival))
 
+print("average system occupancy of Proc1_1: {:.3f}".format(float(sum(Monitor1_1.sizes))/len(Monitor1_1.sizes)))
+print("average system occupancy of Proc1_2: {:.3f}".format(float(sum(Monitor1_2.sizes))/len(Monitor1_2.sizes)))
+print("average system occupancy of Proc1_3: {:.3f}".format(float(sum(Monitor1_3.sizes))/len(Monitor1_3.sizes)))
+print("average system occupancy of Proc1_4: {:.3f}".format(float(sum(Monitor1_4.sizes))/len(Monitor1_4.sizes)))
+print("average system occupancy of Proc1_5: {:.3f}".format(float(sum(Monitor1_5.sizes))/len(Monitor1_5.sizes)))
+print("average system occupancy of Proc1_6: {:.3f}".format(float(sum(Monitor1_6.sizes))/len(Monitor1_6.sizes)))
+print("average system occupancy of Proc1_7: {:.3f}".format(float(sum(Monitor1_7.sizes))/len(Monitor1_7.sizes)))
+
+print("average system occupancy of Proc2_1: {:.3f}".format(float(sum(Monitor2_1.sizes))/len(Monitor2_1.sizes)))
+print("average system occupancy of Proc2_2: {:.3f}".format(float(sum(Monitor2_2.sizes))/len(Monitor2_2.sizes)))
+print("average system occupancy of Proc2_3: {:.3f}".format(float(sum(Monitor2_3.sizes))/len(Monitor2_3.sizes)))
+print("average system occupancy of Proc2_4: {:.3f}".format(float(sum(Monitor2_4.sizes))/len(Monitor2_4.sizes)))
+print("average system occupancy of Proc2_5: {:.3f}".format(float(sum(Monitor2_5.sizes))/len(Monitor2_5.sizes)))
+print("average system occupancy of Proc2_6: {:.3f}".format(float(sum(Monitor2_6.sizes))/len(Monitor2_6.sizes)))
+print("average system occupancy of Proc2_7: {:.3f}".format(float(sum(Monitor2_7.sizes))/len(Monitor2_7.sizes)))
+
+
 #Sink.show_chart()
 
 # 공정별 대기시간의 합
@@ -223,3 +241,26 @@ print("total waiting time of 해승케이피피 : ",waiting_time["해승케이�
 print("total waiting time of 삼녹 : ",waiting_time["삼녹"])
 print("total waiting time of 성도 : ",waiting_time["성도"])
 print("total waiting time of 하이에어 : ",waiting_time["하이에어"])
+
+fig, axis = plt.subplots()
+axis.hist(Sink.waits, bins=100, density=True)
+axis.set_title("Histogram for waiting times")
+axis.set_xlabel("time")
+axis.set_ylabel("normalized frequency of occurrence")
+plt.show()
+
+fig, axis = plt.subplots()
+axis.hist(Sink.arrivals, bins=100, density=True)
+axis.set_title("Histogram for Sink Interarrival times")
+axis.set_xlabel("time")
+axis.set_ylabel("normalized frequency of occurrence")
+
+plt.show()
+
+fig, axis = plt.subplots()
+axis.hist(Monitor1_2.sizes, bins=10, density=True)
+axis.set_title("Histogram for Process1 WIP")
+axis.set_xlabel("time")
+axis.set_ylabel("normalized frequency of occurrence")
+
+plt.show()
