@@ -62,9 +62,9 @@ Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
 
 Proc1_1 = Process(env, "proc1", "(주)성광테크", proc_time, 5, 7, qlimit=10, limit_bytes=False)
 Proc1_2 = Process(env, "proc1", "건일산업(주)", proc_time, 5, 7, qlimit=10, limit_bytes=False)
-Proc1_3 = Process(env, "proc1", "부흥", proc_time, 5, 7, qlimit=10000, limit_bytes=False)
+Proc1_3 = Process(env, "proc1", "부흥", proc_time, 5, 7, qlimit=10, limit_bytes=False)
 Proc1_4 = Process(env, "proc1", "삼성중공업(주)거제", proc_time, 10, 7, qlimit=10, limit_bytes=False)
-Proc1_5 = Process(env, "proc1", "성일", proc_time, 5, 7, qlimit=10000, limit_bytes=False)
+Proc1_5 = Process(env, "proc1", "성일", proc_time, 5, 7, qlimit=10, limit_bytes=False)
 Proc1_6 = Process(env, "proc1", "성일SIM함안공장", proc_time, 5, 7, qlimit=10, limit_bytes=False)
 Proc1_7 = Process(env, "proc1", "해승케이피피", proc_time, 5, 7, qlimit=10, limit_bytes=False)
 
