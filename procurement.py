@@ -91,7 +91,7 @@ env.run(until=RUN_TIME)
 
 print("Total Lead Time : ", Sink.last_arrival)
 
-# 공정별 가동
+# 공정별 가동률
 for i in range(len(proc1_list)):
     print("utilization of {0}: {1:2.2f}".format(proc1_list[i].name ,proc1_list[i].working_time / Sink.last_arrival))
 for i in range(len(proc2_list)):
