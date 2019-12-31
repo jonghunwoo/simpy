@@ -5,14 +5,14 @@ Copyright 2019 Dr. Jonathan Woo
 import random
 import functools
 import simpy
-from SimComponents_rev3 import Source, Sink, Process, Monitor
+from SimComponents_assembly_line import Source, Sink, Process, Monitor
+import time
 
 if __name__ == '__main__':
 
     random.seed(42)
 
     adist = functools.partial(random.randrange,3,7)
-    part_weight = functools.partial(random.randrange,5,20)
     samp_dist = functools.partial(random.expovariate, 1)
 
     proc_time1 = functools.partial(random.normalvariate,5,1)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # Create the packet generators and sink
     Sink = Sink(env, 'Sink', debug=False, rec_arrivals=True)
-    Source = Source(env, "Source", adist, part_weight)
+    Source = Source(env, "Source", adist)
     Process1 = Process(env, 'Process1', proc_time1, qlimit=5, limit_bytes=False)
     Process2 = Process(env, 'Process2', proc_time2, qlimit=5, limit_bytes=False)
     Process3 = Process(env, 'Process3', proc_time3, qlimit=5, limit_bytes=False)
@@ -51,7 +51,10 @@ if __name__ == '__main__':
     Process5.out = Sink
 
     # Run it
+    start = time.time()  # 시작 시간 저장
+    # Run it
     env.run(until=RUN_TIME)
+    print("simulation time :", time.time() - start)
 
     print('#'*80)
     print("Results of simulation")
