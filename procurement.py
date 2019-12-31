@@ -8,6 +8,7 @@ import functools
 import simpy
 from SimComponents_for_supply_chain import DataframeSource, Sink, Process, Monitor
 import matplotlib.pyplot as plt
+import time
 
 """ Data loading
     1. request raw excel file from github of jonghunwoo
@@ -87,7 +88,10 @@ for i in range(len(proc1_list)):
     for j in range(len(proc2_list)):
         proc1_list[i].outs['{}'.format(proc2_list[j].name)] = proc2_list[j]
 
+start = time.time()  # 시작 시간 저장
+# Run it
 env.run(until=RUN_TIME)
+print("time :", time.time() - start)
 
 print("Total Lead Time : ", Sink.last_arrival)
 

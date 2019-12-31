@@ -98,7 +98,7 @@ class DataframeSource(object):
                     self.outs[p.df["proc1"]].wait1.append(stop)
                     yield stop
 
-            print("part{0} sent at {1}".format(p.id, self.env.now))
+            #print("part{0} sent at {1}".format(p.id, self.env.now))
             self.parts_sent += 1
 
             self.outs[p.df["proc1"]].put(p)
