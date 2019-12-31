@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import functools
 import simpy
-from SimComponents_for_assembly_line import Source, DataframeSource, Sink, Process, Monitor
+from SimComponents_for_block_assembly import Source, DataframeSource, Sink, Process, Monitor
 import matplotlib.pyplot as plt
 
 import time

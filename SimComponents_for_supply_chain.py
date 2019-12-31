@@ -63,7 +63,7 @@ class Source(object):
                     self.out.stop = True
                     yield self.wait[0]
 
-            print("part{0} left source at {1}".format(p.id, self.env.now))
+            #print("part{0} left source at {1}".format(p.id, self.env.now))
             self.out.put(p)
 
 
@@ -104,7 +104,7 @@ class DataframeSource(object):
             self.outs[p.df["proc1"]].put(p)
 
             if len(self.df) == self.parts_sent + 1:
-                print("All parts are sent at {time}".format(time=self.env.now))
+                #print("All parts are sent at {time}".format(time=self.env.now))
                 break
 
 

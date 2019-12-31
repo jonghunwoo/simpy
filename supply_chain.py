@@ -67,11 +67,11 @@ proc2_list = []
 monitor1_list = []
 monitor2_list = []
 
-print(proc1_name_list)
+#print(proc1_name_list)
 
-proc1_qlimit = [10, 10, 10000, 10, 10000, 10, 10]
+proc1_qlimit = [10, 10, 10, 10, 10, 10, 10]
 proc2_qlimit = [10, 10, 10, 10, 10, 10, 10]
-proc1_subprocess = [5, 5, 5, 5, 5, 10, 5]
+proc1_subprocess = [5, 5, 5, 5, 5, 5, 5]
 proc2_subprocess = [5, 5, 5, 5, 5, 5, 5]
 
 for i in range(len(proc1_name_list)):
