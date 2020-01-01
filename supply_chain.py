@@ -69,10 +69,15 @@ monitor2_list = []
 
 #print(proc1_name_list)
 
-proc1_qlimit = [10, 10, 10, 10, 10, 10, 10]
-proc2_qlimit = [10, 10, 10, 10, 10, 10, 10]
-proc1_subprocess = [5, 5, 5, 5, 5, 5, 5]
-proc2_subprocess = [5, 5, 5, 5, 5, 5, 5]
+#proc1_qlimit = [10, 10, 10, 10, 10, 10, 10]
+#proc2_qlimit = [10, 10, 10, 10, 10, 10, 10]
+#proc1_subprocess = [5, 5, 5, 5, 5, 5, 5]
+#proc2_subprocess = [5, 5, 5, 5, 5, 5, 5]
+
+proc1_qlimit = [1, 1, 1, 1, 1, 1, 1]
+proc2_qlimit = [1, 1, 1, 1, 1, 1, 1]
+proc1_subprocess = [1, 1, 1, 1, 1, 1, 1]
+proc2_subprocess = [1, 1, 1, 1, 1, 1, 1]
 
 for i in range(len(proc1_name_list)):
     proc1_list.append(Process(env, "proc1", "{}".format(proc1_name_list[i]), proc_time, proc1_subprocess[i], qlimit=proc1_qlimit[i], limit_bytes=False))
