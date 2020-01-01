@@ -1,4 +1,4 @@
-import datetime
+import time
 import pandas as pd
 import numpy as np
 
@@ -178,7 +178,11 @@ for i in range(len(activity)):
 
 process_dict['Sink'] = Sink
 
+# Run it
+start = time.time()  # 시작 시간 저장
+# Run it
 env.run(until=RUN_TIME)
+print("simulation time :", time.time() - start)
 
 print('#'*80)
 print("Results of simulation")
