@@ -40,6 +40,7 @@ data = pd.read_csv('./data/spool_data_for_simulation.csv')
 df = data[["NO_SPOOL", "DIA", "Length", "Weight", "MemberCount", "JointCount", "Material", "제작협력사", "도장협력사", "Plan_makingLT", "Actual_makingLT", "Predicted_makingLT", "Plan_paintingLT", "Actual_paintingLT", "Predicted_paintingLT"]]
 
 df.rename(columns={'NO_SPOOL': 'part_no', "제작협력사": 'proc1', '도장협력사': 'proc2', 'Plan_makingLT': 'ct1', 'Actual_makingLT': 'ct3', 'Predicted_makingLT': 'ct5', 'Plan_paintingLT': 'ct2', 'Actual_paintingLT': 'ct4', 'Predicted_paintingLT': 'ct6'}, inplace=True)
+print(df.shape[0])
 
 """ Simulation
     Dataframe with product data is passed to Source.
@@ -69,13 +70,13 @@ monitor2_list = []
 
 #print(proc1_name_list)
 
-#proc1_qlimit = [10, 10, 10, 10, 10, 10, 10]
-#proc2_qlimit = [10, 10, 10, 10, 10, 10, 10]
+proc1_qlimit = [10, 10, 10, 10, 10, 10, 10]
+proc2_qlimit = [10, 10, 10, 10, 10, 10, 10]
 #proc1_subprocess = [5, 5, 5, 5, 5, 5, 5]
 #proc2_subprocess = [5, 5, 5, 5, 5, 5, 5]
 
-proc1_qlimit = [1, 1, 1, 1, 1, 1, 1]
-proc2_qlimit = [1, 1, 1, 1, 1, 1, 1]
+#proc1_qlimit = [1, 1, 1, 1, 1, 1, 1]
+#proc2_qlimit = [1, 1, 1, 1, 1, 1, 1]
 proc1_subprocess = [1, 1, 1, 1, 1, 1, 1]
 proc2_subprocess = [1, 1, 1, 1, 1, 1, 1]
 

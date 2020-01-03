@@ -60,6 +60,7 @@ for i in range(data_num):
         if activity_code not in activity:
             activity.append(activity_code)
 
+
         # [시작 시간 간격, 총 공정 시간]
         raw_data[proj_name][proj_block][activity_code] = [interval_t.days, temp.PLANDURATION]
         preproc_data[proj_name][proj_block][activity_code] = [interval_t.days, temp.PLANDURATION]
