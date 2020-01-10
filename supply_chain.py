@@ -72,22 +72,22 @@ monitor2_list = []
 
 proc1_qlimit = [10, 10, 10, 10, 10, 10, 10]
 proc2_qlimit = [10, 10, 10, 10, 10, 10, 10]
-#proc1_subprocess = [5, 5, 5, 5, 5, 5, 5]
-#proc2_subprocess = [5, 5, 5, 5, 5, 5, 5]
+proc1_subprocess = [5, 5, 5, 5, 5, 5, 5]
+proc2_subprocess = [5, 5, 5, 5, 5, 5, 5]
 
 #proc1_qlimit = [1, 1, 1, 1, 1, 1, 1]
 #proc2_qlimit = [1, 1, 1, 1, 1, 1, 1]
-proc1_subprocess = [1, 1, 1, 1, 1, 1, 1]
-proc2_subprocess = [1, 1, 1, 1, 1, 1, 1]
+#proc1_subprocess = [1, 1, 1, 1, 1, 1, 1]
+#proc2_subprocess = [1, 1, 1, 1, 1, 1, 1]
 
 for i in range(len(proc1_name_list)):
     proc1_list.append(Process(env, "proc1", "{}".format(proc1_name_list[i]), proc_time, proc1_subprocess[i], qlimit=proc1_qlimit[i], limit_bytes=False))
-    monitor1_list.append(Monitor(env, proc1_list[i], samp_dist))
+    #monitor1_list.append(Monitor(env, proc1_list[i], samp_dist))
     Source.outs['{}'.format(proc1_list[i].name)] = proc1_list[i]
 
 for i in range(len(proc2_name_list)):
     proc2_list.append(Process(env, "proc2", "{}".format(proc2_name_list[i]), proc_time, proc2_subprocess[i], qlimit=proc2_qlimit[i], limit_bytes=False))
-    monitor2_list.append(Monitor(env, proc2_list[i], samp_dist))
+    #monitor2_list.append(Monitor(env, proc2_list[i], samp_dist))
     proc2_list[i].outs['Sink'] = Sink
 
 for i in range(len(proc1_list)):
@@ -107,10 +107,10 @@ for i in range(len(proc1_list)):
 for i in range(len(proc2_list)):
     print("utilization of {0}: {1:2.2f}".format(proc2_list[i].name ,proc2_list[i].working_time / Sink.last_arrival))
 
-for i in range(len(proc1_list)):
-    print("average system occupancy of {0}: {1:.3f}".format(proc1_list[i].name, float(sum(monitor1_list[i].sizes)) / len(monitor1_list[i].sizes)))
-for i in range(len(proc2_list)):
-    print("average system occupancy of {0}: {1:.3f}".format(proc2_list[i].name, float(sum(monitor2_list[i].sizes)) / len(monitor2_list[i].sizes)))
+#for i in range(len(proc1_list)):
+    #print("average system occupancy of {0}: {1:.3f}".format(proc1_list[i].name, float(sum(monitor1_list[i].sizes)) / len(monitor1_list[i].sizes)))
+#for i in range(len(proc2_list)):
+    #print("average system occupancy of {0}: {1:.3f}".format(proc2_list[i].name, float(sum(monitor2_list[i].sizes)) / len(monitor2_list[i].sizes)))
 
 # 공정별 대기시간의 합
 

@@ -94,7 +94,7 @@ Process6.out = Process7
 Process7.out = Sink
 
 
-start = time.time()  # 시작 시간 저장
+start = time.time()  # 시작 시간 저장 (0.05초)
 # Run it
 env.run(until=RUN_TIME)
 print("time :", time.time() - start)
