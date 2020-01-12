@@ -220,7 +220,8 @@ class Process(object):
 
 class Monitor(object):
 
-    def __init__(self, env, port, dist):
+    def __init__(self, env, name, port, dist):
+        self.name = name
         self.port = port
         self.env = env
         self.dist = dist
